@@ -123,7 +123,6 @@ export function ProposalDocument({ content, customerName, editable = false, onCh
           ))}
         </div>
         <T path={["exams", "note"]} as="p" className="mt-6 block text-sm text-muted-foreground" />
-        <ExaminationContents />
         <Footer n={3} />
       </section>
 
@@ -170,13 +169,13 @@ export function ProposalDocument({ content, customerName, editable = false, onCh
           <T path={["pricing", "heading"]} as="h2" className="display block text-5xl print:text-4xl" />
           <T path={["pricing", "intro"]} as="p" className="block text-lg" />
         </div>
-        <div className="mt-12 grid grid-cols-2 gap-4">
+        <div className="mt-12 grid gap-4 md:grid-cols-3 print:grid-cols-3">
           {c.pricing.packages.map((p, i) => (
-            <div key={i} className={`group relative rounded-3xl p-8 ${i % 2 ? "bg-ink text-ink-foreground" : "bg-sand"}`}>
+            <div key={i} className={`group relative min-w-0 rounded-2xl p-6 ${i % 2 ? "bg-ink text-ink-foreground" : "bg-sand"}`}>
               <T path={["pricing", "packages", i, "name"]} as="p" className="eyebrow block !text-current opacity-60" />
-              <p className="mt-4 flex items-baseline gap-3">
-                <T path={["pricing", "packages", i, "price"]} className="display text-5xl print:text-4xl" />
-                <span className="text-sm opacity-60">från, per person</span>
+              <p className="mt-4 flex flex-col gap-2">
+                <T path={["pricing", "packages", i, "price"]} className="display break-words text-3xl print:text-2xl" />
+                <span className="text-sm opacity-60">per person</span>
               </p>
               <ul className="mt-8 divide-y divide-current/15 border-t border-current/15">
                 {p.features.map((_, j) => (
@@ -188,6 +187,7 @@ export function ProposalDocument({ content, customerName, editable = false, onCh
             </div>
           ))}
         </div>
+        <ExaminationContents />
         {c.pricing.addons.length > 0 && (
           <div className="mt-12">
             <div className="flex justify-between border-b pb-3">

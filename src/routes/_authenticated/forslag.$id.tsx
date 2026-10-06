@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Check, Copy, Download, Link2, Loader2, RefreshCw, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, Download, Link2, Loader2, RefreshCw, Sparkles, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { generateProposal } from "@/lib/proposals.functions";
 import type { ProposalContent } from "@/lib/proposal-types";
@@ -46,6 +46,7 @@ function Editor() {
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState("");
   const [instruction, setInstruction] = useState("");
+  const [assistantCollapsed, setAssistantCollapsed] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const pendingSave = useRef<Promise<void>>(Promise.resolve());
 
@@ -108,13 +109,13 @@ function Editor() {
   return (
     <div>
       <div className="no-print sticky top-16 z-20 border-b bg-background/85 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-6">
-          <div className="flex items-center gap-4">
+        <div className="mx-auto flex min-h-14 max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-2">
+          <div className="flex min-w-0 items-center gap-4">
             <Link to="/forslag" className="text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <span className="font-medium">{p.customer_name}</span>
-            <span className="text-xs text-muted-foreground">
+            <span className="truncate font-medium">{p.customer_name}</span>
+            <span className="hidden text-xs text-muted-foreground md:inline">
               {saving === "saving" ? "Sparar…" : saving === "saved" ? "Sparat" : content ? "Klicka på texten för att redigera" : ""}
             </span>
           </div>
@@ -164,11 +165,17 @@ function Editor() {
       )}
 
       {content && (
-        <form className="no-print mx-auto max-w-[900px] px-6 pt-8" onSubmit={(event) => {
+        <form aria-label="OneLab AI" className="no-print fixed inset-x-4 bottom-4 z-30 ml-auto max-w-[420px] rounded-lg border bg-paper p-4 shadow-lg xl:inset-x-auto xl:right-6 xl:bottom-auto xl:top-40 xl:w-80" onSubmit={(event) => {
           event.preventDefault();
           if (instruction.trim()) void regenerate(instruction.trim());
         }}>
-          <label htmlFor="adjustment" className="mb-3 block font-medium">Justera förslaget med AI</label>
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="adjustment" className="font-medium">Justera förslaget med AI</label>
+            <Button type="button" variant="ghost" size="icon" aria-label={assistantCollapsed ? "Öppna AI-rutan" : "Minimera AI-rutan"} aria-expanded={!assistantCollapsed} onClick={() => setAssistantCollapsed(!assistantCollapsed)}>
+              {assistantCollapsed ? <ChevronUp /> : <ChevronDown />}
+            </Button>
+          </div>
+          <div className={assistantCollapsed ? "hidden" : "mt-3"}>
           <Textarea id="adjustment" value={instruction} disabled={regen} maxLength={6000}
             onChange={(event) => setInstruction(event.target.value)}
             placeholder="Till exempel: Korta inledningen och lyft fram stödet till HR."
@@ -177,10 +184,11 @@ function Editor() {
             {regen ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
             {regen ? "Bearbetar förslaget…" : "Justera förslaget"}
           </Button>
+          </div>
         </form>
       )}
 
-      <div className="px-6 py-10 print:p-0" inert={regen}>
+      <div className={`px-6 py-10 print:p-0 ${content ? "pb-80 xl:pr-[370px] xl:pb-10" : ""}`} inert={regen}>
         {content ? (
           <ProposalDocument content={content} customerName={p.customer_name} editable onChange={onChange} />
         ) : (

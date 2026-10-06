@@ -8,3 +8,9 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Proposal content is stored as one jsonb document (shape in src/lib/proposal-types.ts) and rendered by ProposalDocument for both editor and public share; why: one renderer keeps edit, share and print identical.
+- PDF export uses browser print with A4 print CSS; why: no server-side PDF dependency on the Worker runtime.
+- Public share reads go through the SECURITY DEFINER rpc get_shared_proposal; why: no anon SELECT policy on proposals.
+- Access is limited to @onelab.se emails in RLS (is_onelab()) and in the auth gate; why: internal tool.
+- AI settings (services, standard texts, tone) live in the single-row app_settings table; why: editable from the settings page without deploys.

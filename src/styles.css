@@ -203,4 +203,7 @@
   .examination-disclosure {
     break-inside: avoid;
   }
+  .examination-disclosure li {
+    break-inside: avoid;
+  }
 }

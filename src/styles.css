@@ -2,10 +2,32 @@
 @source "../src";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: "LabGrotesque";
+  src: url("/__l5e/assets-v1/e18d9b72-ec4f-4eb4-a653-670f64ec1a43/LabGrotesque-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "LabGrotesque";
+  src: url("/__l5e/assets-v1/4877a181-78db-4cf6-8930-c4fce0f44b1a/LabGrotesque-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "LabGrotesque";
+  src: url("/__l5e/assets-v1/50073089-b30a-4d54-90e4-4cd2717a8a19/LabGrotesque-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "LabGrotesque", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

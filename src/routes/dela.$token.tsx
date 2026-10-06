@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { Download } from "lucide-react";
 import { getSharedProposal } from "@/lib/proposals.functions";
 import { ProposalDocument } from "@/components/ProposalDocument";
+import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dela/$token")({
@@ -43,9 +44,7 @@ function Shared() {
   return (
     <div className="min-h-screen">
       <header className="no-print mx-auto flex max-w-[900px] items-center justify-between px-6 py-6">
-        <span className="text-xl">
-          OneLab<sup className="text-[10px]">®</sup>
-        </span>
+        <Wordmark className="h-5" />
         <Button size="sm" variant="outline" className="rounded-full" onClick={() => window.print()}>
           <Download className="mr-1.5 h-4 w-4" /> Ladda ner PDF
         </Button>

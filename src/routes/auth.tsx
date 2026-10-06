@@ -6,7 +6,9 @@ import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import cover from "@/assets/cover.jpg";
+import coverA from "@/assets/brand/cover.jpg.asset.json";
+import { Wordmark } from "@/components/Wordmark";
+const cover = coverA.url;
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -86,9 +88,7 @@ function AuthPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col justify-between p-10 lg:p-16">
-        <span className="text-2xl">
-          OneLab<sup className="text-xs">®</sup>
-        </span>
+        <Wordmark className="h-7" />
         <div className="mx-auto w-full max-w-sm">
           <p className="eyebrow mb-4">Förslagsverktyget</p>
           <h1 className="display text-5xl">{mode === "in" ? "Välkommen tillbaka" : "Skapa konto"}</h1>
@@ -128,7 +128,7 @@ function AuthPage() {
         </div>
         <span className="text-xs text-muted-foreground">Internt verktyg · OneLab</span>
       </div>
-      <img src={cover} alt="" width={1600} height={1104} className="hidden h-screen w-full object-cover object-right lg:block" />
+      <img src={cover} alt="" width={1920} height={1280} className="hidden h-screen w-full object-cover object-[65%_center] lg:block" />
     </div>
   );
 }

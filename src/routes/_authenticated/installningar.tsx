@@ -13,6 +13,8 @@ export const Route = createFileRoute("/_authenticated/installningar")({
       { name: "description", content: "Tjänstebeskrivningar och standardtexter för AI:n." },
       { property: "og:title", content: "Inställningar – OneLab Förslag" },
       { property: "og:description", content: "Tjänstebeskrivningar och standardtexter för AI:n." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Settings,

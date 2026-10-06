@@ -196,4 +196,11 @@
   .doc-page:last-child {
     break-after: auto;
   }
+  .examination-panel {
+    display: block !important;
+    padding-bottom: 4mm;
+  }
+  .examination-disclosure {
+    break-inside: avoid;
+  }
 }

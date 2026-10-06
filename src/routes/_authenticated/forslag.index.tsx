@@ -11,6 +11,8 @@ export const Route = createFileRoute("/_authenticated/forslag/")({
       { name: "description", content: "Dina sparade kundförslag." },
       { property: "og:title", content: "Mina förslag – OneLab" },
       { property: "og:description", content: "Dina sparade kundförslag." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: List,

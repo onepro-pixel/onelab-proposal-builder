@@ -17,6 +17,8 @@ export const Route = createFileRoute("/_authenticated/forslag/ny")({
       { name: "description", content: "Skapa ett nytt kundförslag från mötesanteckningar." },
       { property: "og:title", content: "Ny offert – OneLab" },
       { property: "og:description", content: "Skapa ett nytt kundförslag från mötesanteckningar." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: NewProposal,

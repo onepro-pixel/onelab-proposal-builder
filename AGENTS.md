@@ -16,4 +16,6 @@
 - AI settings (services, standard texts, tone) live in the single-row app_settings table; why: editable from the settings page without deploys.
 - AI revisions use the saved current document and preserve its contact; why: follow-up prompts must keep prior edits rather than restart from meeting notes.
 - Examination contents are shared by the renderer and AI prompt in a browser-safe catalog; why: editor, public share, print and generated package descriptions stay consistent.
+- Uploaded product and whitepaper facts are curated into editable app settings rather than rereading PDFs at generation time; why: keep proposals grounded, fast and maintainable while current user prices override historical source prices.
+- The AI revision form stays fixed beside the document on wide screens and collapsible at the bottom on narrow screens; why: adjustments remain available while scrolling without obscuring the document on wide screens.
 - Gateway calls stream structured Responses output inside a server-only helper with request-local run IDs; why: keep credentials private and prevent invalid schemas or duplicate automatic retries.

@@ -1,11 +1,12 @@
 import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { basContents, plusContents } from "@/lib/examination-content";
+import { digitalContents, basContents, plusContents } from "@/lib/examination-content";
 
 export function ExaminationContents() {
   return (
     <div className="mt-8 divide-y border-y">
+      <Examination name="OneLab Digital" items={digitalContents} />
       <Examination name="OneLab Bas" items={basContents} />
       <Examination name="OneLab Plus" items={plusContents} />
     </div>

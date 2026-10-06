@@ -1,11 +1,16 @@
-export const basContents = [
+export const digitalContents = [
   "Stress och utmattning (PSS)",
   "Sömn och återhämtning (ISI)",
   "Depressionsrisk (PHQ-9)",
   "Ångest och oro (GAD-7)",
-  "Fysisk aktivitet (SGPALS)",
   "Alkohol och riskbruk (AUDIT)",
-  "Matvanor", "Kvinnohälsa", "Arbetsmiljö",
+  "Fysisk aktivitet (Socialstyrelsens aktivitetsminuter)",
+  "Matvanor (Livsmedelsverkets rekommendationer)",
+  "Kvinnohälsa", "Allmänhälsa", "Arbetsmiljö",
+] as const;
+
+export const basContents = [
+  ...digitalContents,
   "Systoliskt blodtryck", "Diastoliskt blodtryck", "Total kolesterol",
   "LDL (onda kolesterolet)", "HDL (goda kolesterolet)",
   "Triglycerider (blodfetter)", "HbA1c (långtidsblodsocker)",
@@ -20,8 +25,10 @@ export const plusContents = [
 ] as const;
 
 export const examinationRules = `
+Hälsoundersökning Digital innehåller exakt: ${digitalContents.join("; ")}. Digital är en frågebaserad screening, utan blodprov eller fysiska mätningar.
 OneLab Bas innehåller exakt: ${basContents.join("; ")}.
 OneLab Plus innehåller exakt: ${plusContents.join("; ")}.
+Bas inkluderar hela Digital och Plus inkluderar hela Bas. Dessa är de tre standarduppläggen.
 Nattarbetsundersökning ingår INTE i Bas eller Plus. Det är ett separat tillval endast när kundens bransch/anteckningar visar behov av nattarbete. Om pris saknas: ange "Pris enligt offert", hitta inte på ett pris.
 Dessa paketregler gäller även om äldre standardtexter eller ett befintligt utkast säger något annat.
 `;

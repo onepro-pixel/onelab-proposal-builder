@@ -13,7 +13,15 @@ export const Route = createFileRoute("/dela/$token")({
     return p;
   },
   head: ({ loaderData }) => {
-    if (!loaderData) return { meta: [{ title: "Förslaget är inte tillgängligt" }, { name: "robots", content: "noindex" }] };
+    if (!loaderData) return { meta: [
+      { title: "Förslaget är inte tillgängligt – OneLab" },
+      { name: "description", content: "Detta kundförslag från OneLab är inte tillgängligt." },
+      { property: "og:title", content: "Förslaget är inte tillgängligt – OneLab" },
+      { property: "og:description", content: "Detta kundförslag från OneLab är inte tillgängligt." },
+      { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
+    ] };
     const t = loaderData.content.title || `Förslag för ${loaderData.customer_name}`;
     return {
       meta: [

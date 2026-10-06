@@ -1,9 +1,13 @@
 import { useEffect, useRef, type ElementType } from "react";
 import { X } from "lucide-react";
 import type { ProposalContent } from "@/lib/proposal-types";
-import cover from "@/assets/cover.jpg";
-import exam from "@/assets/exam.jpg";
-import program from "@/assets/program.jpg";
+import coverA from "@/assets/brand/cover.jpg.asset.json";
+import examA from "@/assets/brand/exam.jpg.asset.json";
+import programA from "@/assets/brand/program.jpg.asset.json";
+import { Wordmark } from "@/components/Wordmark";
+const cover = coverA.url;
+const exam = examA.url;
+const program = programA.url;
 
 type Path = (string | number)[];
 type Props = {
@@ -50,9 +54,7 @@ export function ProposalDocument({ content, customerName, editable = false, onCh
 
   const Footer = ({ n }: { n: number }) => (
     <div className="absolute inset-x-16 bottom-8 flex items-end justify-between border-t pt-4 text-xs print:inset-x-[16mm] print:bottom-[10mm]">
-      <span className="text-sm">
-        OneLab<sup>®</sup>
-      </span>
+      <Wordmark className="h-3.5" />
       <span>
         {customerName} × OneLab · Företagshälsa
       </span>
@@ -64,7 +66,7 @@ export function ProposalDocument({ content, customerName, editable = false, onCh
     <div className="doc-wrap mx-auto flex max-w-[900px] flex-col gap-8">
       {/* Cover */}
       <section className="doc-page flex min-h-[1100px] flex-col overflow-hidden !p-0 print:min-h-[297mm]">
-        <img src={cover} alt="" width={1600} height={1104} className="h-[55%] max-h-[620px] w-full object-cover object-right" />
+        <img src={cover} alt="" width={1920} height={1280} className="h-[55%] max-h-[620px] w-full object-cover object-center" />
         <div className="flex flex-1 flex-col justify-between p-16 print:p-[16mm]">
           <div>
             <p className="eyebrow mb-6">Kundförslag · {customerName}</p>
@@ -72,9 +74,7 @@ export function ProposalDocument({ content, customerName, editable = false, onCh
             <T path={["subtitle"]} as="p" className="mt-6 block max-w-xl text-xl text-muted-foreground" />
           </div>
           <div className="flex items-end justify-between">
-            <span className="text-2xl">
-              OneLab<sup className="text-xs">®</sup>
-            </span>
+            <Wordmark className="h-7" />
             <span className="h-3 w-3 rounded-full bg-brand" />
           </div>
         </div>
@@ -111,7 +111,7 @@ export function ProposalDocument({ content, customerName, editable = false, onCh
           <T path={["exams", "heading"]} as="h2" className="display block text-5xl print:text-4xl" />
           <T path={["exams", "intro"]} as="p" className="block text-lg" />
         </div>
-        <img src={exam} alt="" loading="lazy" width={1408} height={1008} className="mt-10 h-64 w-full rounded-2xl object-cover" />
+        <img src={exam} alt="" loading="lazy" width={1920} height={1261} className="mt-10 h-64 object-[center_30%] w-full rounded-2xl object-cover" />
         <div className="mt-10 divide-y border-y">
           {c.exams.items.map((it, i) => (
             <div key={i} className="group relative grid grid-cols-[14rem_1fr] gap-6 py-5">
@@ -131,7 +131,7 @@ export function ProposalDocument({ content, customerName, editable = false, onCh
         <T path={["program", "heading"]} as="h2" className="display block max-w-2xl text-5xl print:text-4xl" />
         <T path={["program", "intro"]} as="p" className="mt-8 block max-w-2xl text-lg" />
         <div className="mt-10 grid grid-cols-2 gap-10">
-          <img src={program} alt="" loading="lazy" width={1408} height={1008} className="h-80 w-full rounded-2xl object-cover" />
+          <img src={program} alt="" loading="lazy" width={1280} height={1920} className="h-80 object-[center_35%] w-full rounded-2xl object-cover" />
           <T path={["program", "body"]} as="p" className="block text-muted-foreground" />
         </div>
         <div className="mt-12 rounded-3xl bg-sand p-10">

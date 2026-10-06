@@ -3,11 +3,12 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
-import { proposalSchema, type ProposalContent } from "./proposal-types";
+import { type ProposalContent } from "./proposal-types";
+import { examinationRules } from "./examination-content";
 
 export const generateProposal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), instruction: z.string().trim().min(1).max(6000).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, claims } = context;
     const { data: p, error } = await supabase
@@ -18,6 +19,7 @@ export const generateProposal = createServerFn({ method: "POST" })
     if (error || !p) throw new Error("Förslaget hittades inte");
     const { data: s } = await supabase.from("app_settings").select("*").eq("id", 1).single();
 
+    if (data.instruction && !p.content) throw new Error("Skriv ett första utkast innan du justerar förslaget.");
     const system = `Du är en erfaren säljare och skribent på OneLab, ett svenskt företag inom företagshälsa.
 Du skriver skräddarsydda kundförslag på svenska utifrån mötesanteckningar från Sales Kong.
 
@@ -34,56 +36,32 @@ Regler:
 - Ta bara med medicinska kontroller och tillägg som är relevanta för kunden.
 - Rekommendera det paket som passar bäst men visa båda paketen.
 - Nämn kundens namn naturligt i texterna. Korta, konkreta meningar.
-- Hitta inte på siffror om antal anställda om de inte finns i anteckningarna.`;
+- Hitta inte på siffror om antal anställda om de inte finns i anteckningarna.
+- Håll varje sektion kort och konkret, normalt 1–3 meningar per textfält.
+${examinationRules}
+${data.instruction ? "Du redigerar ett BEFINTLIGT förslag. Utför bara den begärda ändringen, bevara övriga texter, priser och manuella ändringar. Returnera hela dokumentet med samma struktur. Korrigera alltid eventuella påståenden att nattarbete ingår i ett paket." : ""}`;
 
     const user = `Kund: ${p.customer_name}
 Kontaktperson: ${p.contact_person}
 
 Mötesanteckningar:
-${p.notes}`;
+${p.notes}
+${data.instruction ? `\nNuvarande förslag:\n${JSON.stringify(p.content)}\n\nÖnskad justering:\n${data.instruction}` : ""}`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env["LOVABLE_API_KEY"]}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "write_proposal",
-              description: "Skriv kundförslaget",
-              parameters: proposalSchema,
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "write_proposal" } },
-      }),
-    });
-    if (res.status === 429) throw new Error("För många förfrågningar just nu, försök igen om en stund.");
-    if (res.status === 402) throw new Error("AI-krediterna är slut. Fyll på i arbetsytans inställningar.");
-    if (!res.ok) throw new Error(`AI-fel (${res.status})`);
-    const json = (await res.json()) as {
-      choices: { message: { tool_calls?: { function: { arguments: string } }[] } }[];
-    };
-    const args = json.choices[0]?.message.tool_calls?.[0]?.function.arguments;
-    if (!args) throw new Error("AI:n returnerade inget förslag");
-    const content = JSON.parse(args) as ProposalContent;
+    const { writeProposal } = await import("./proposal-ai.server");
+    const content = await writeProposal(system, user);
     const email = (claims as { email?: string }).email ?? "";
     const local = email.split("@")[0] ?? "";
     const name = local
       .split(/[._-]/)
       .filter(Boolean)
-      .map((w) => w[0]!.toUpperCase() + w.slice(1))
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
     content.contact = { name, email, web: "onelab.se/kontakt" };
+    if (data.instruction && p.content) {
+      const previous = p.content as unknown as ProposalContent;
+      if (previous.contact) content.contact = previous.contact;
+    }
 
     const { error: upErr } = await supabase
       .from("proposals")

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Check, Copy, Download, Link2, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, Download, Link2, Loader2, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { generateProposal } from "@/lib/proposals.functions";
 import type { ProposalContent } from "@/lib/proposal-types";
@@ -20,6 +20,8 @@ export const Route = createFileRoute("/_authenticated/forslag/$id")({
       { name: "description", content: "Redigera kundförslag." },
       { property: "og:title", content: "Förslag – OneLab" },
       { property: "og:description", content: "Redigera kundförslag." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Editor,
@@ -43,7 +45,9 @@ function Editor() {
   const [regen, setRegen] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState("");
+  const [instruction, setInstruction] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const pendingSave = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     if (p) {
@@ -53,24 +57,33 @@ function Editor() {
   }, [p]);
 
   function onChange(next: ProposalContent) {
+    if (regen) return;
     setContent(next);
     setSaving("saving");
     clearTimeout(timer.current);
-    timer.current = setTimeout(async () => {
-      const { error } = await supabase.from("proposals").update({ content: next as never }).eq("id", id);
-      if (error) toast.error("Kunde inte spara");
-      setSaving(error ? "idle" : "saved");
+    timer.current = setTimeout(() => {
+      pendingSave.current = pendingSave.current.then(async () => {
+        const { error } = await supabase.from("proposals").update({ content: next as never }).eq("id", id);
+        if (error) toast.error("Kunde inte spara");
+        setSaving(error ? "idle" : "saved");
+      });
     }, 700);
   }
 
-  async function regenerate() {
+  async function regenerate(adjustment?: string) {
+    if (regen) return;
     setRegen(true);
+    clearTimeout(timer.current);
     try {
-      if (notes !== p?.notes) await supabase.from("proposals").update({ notes }).eq("id", id);
-      const c = await generate({ data: { id } });
+      await pendingSave.current;
+      const { error } = await supabase.from("proposals").update({ notes, ...(content ? { content: content as never } : {}) }).eq("id", id);
+      if (error) throw new Error("Kunde inte spara dina ändringar. Försök igen.");
+      const c = await generate({ data: { id, ...(adjustment ? { instruction: adjustment } : {}) } });
       setContent(c);
-      qc.invalidateQueries({ queryKey: ["proposal", id] });
-      toast.success("Nytt förslag skrivet");
+      await qc.invalidateQueries({ queryKey: ["proposal", id] });
+      setSaving("saved");
+      if (adjustment) setInstruction("");
+      toast.success(adjustment ? "Förslaget har justerats" : "Nytt förslag skrivet");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Något gick fel");
     }
@@ -140,8 +153,8 @@ function Editor() {
         <div className="no-print mx-auto max-w-[900px] px-6 pt-8">
           <div className="rounded-2xl border bg-paper p-6">
             <p className="eyebrow mb-3">Mötesanteckningar</p>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="min-h-48" />
-            <Button className="mt-4 rounded-full" onClick={regenerate} disabled={regen}>
+             <Textarea value={notes} disabled={regen} onChange={(e) => setNotes(e.target.value)} className="min-h-48" />
+             <Button className="mt-4 rounded-full" onClick={() => regenerate()} disabled={regen}>
               {regen ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
               Skriv om förslaget
             </Button>
@@ -150,13 +163,30 @@ function Editor() {
         </div>
       )}
 
-      <div className="px-6 py-10 print:p-0">
+      {content && (
+        <form className="no-print mx-auto max-w-[900px] px-6 pt-8" onSubmit={(event) => {
+          event.preventDefault();
+          if (instruction.trim()) void regenerate(instruction.trim());
+        }}>
+          <label htmlFor="adjustment" className="mb-3 block font-medium">Justera förslaget med AI</label>
+          <Textarea id="adjustment" value={instruction} disabled={regen} maxLength={6000}
+            onChange={(event) => setInstruction(event.target.value)}
+            placeholder="Till exempel: Korta inledningen och lyft fram stödet till HR."
+            className="min-h-28 bg-paper" />
+          <Button type="submit" disabled={regen || !instruction.trim()} className="mt-3 rounded-full">
+            {regen ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            {regen ? "Bearbetar förslaget…" : "Justera förslaget"}
+          </Button>
+        </form>
+      )}
+
+      <div className="px-6 py-10 print:p-0" inert={regen}>
         {content ? (
           <ProposalDocument content={content} customerName={p.customer_name} editable onChange={onChange} />
         ) : (
           <div className="mx-auto max-w-xl py-20 text-center">
             <p className="display text-3xl">Inget förslag skrivet än</p>
-            <Button className="mt-6 rounded-full" onClick={regenerate} disabled={regen}>
+            <Button className="mt-6 rounded-full" onClick={() => regenerate()} disabled={regen}>
               {regen && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Skriv förslag med AI
             </Button>
           </div>

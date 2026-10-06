@@ -14,13 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_settings: {
+        Row: {
+          id: number
+          services: string
+          standard_texts: string
+          tone: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          services?: string
+          standard_texts?: string
+          tone?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          services?: string
+          standard_texts?: string
+          tone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      proposals: {
+        Row: {
+          contact_person: string
+          content: Json | null
+          created_at: string
+          customer_name: string
+          id: string
+          is_shared: boolean
+          notes: string
+          share_token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_person?: string
+          content?: Json | null
+          created_at?: string
+          customer_name: string
+          id?: string
+          is_shared?: boolean
+          notes?: string
+          share_token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          contact_person?: string
+          content?: Json | null
+          created_at?: string
+          customer_name?: string
+          id?: string
+          is_shared?: boolean
+          notes?: string
+          share_token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_proposal: {
+        Args: { _token: string }
+        Returns: {
+          contact_person: string
+          content: Json
+          customer_name: string
+        }[]
+      }
+      is_onelab: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

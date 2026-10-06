@@ -263,7 +263,7 @@ function Editable({
   value: string;
   editable: boolean;
   as?: ElementType;
-  className?: string;
+  className?: string | undefined;
   onCommit: (v: string) => void;
 }) {
   const ref = useRef<HTMLElement>(null);

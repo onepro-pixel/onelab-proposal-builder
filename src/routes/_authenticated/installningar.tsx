@@ -44,7 +44,10 @@ function Settings() {
     setBusy(true);
     const { error } = await supabase.from("app_settings").update(form).eq("id", 1);
     setBusy(false);
-    if (error) return toast.error("Kunde inte spara");
+    if (error) {
+      toast.error("Kunde inte spara");
+      return;
+    }
     toast.success("Inställningarna är sparade");
     qc.invalidateQueries({ queryKey: ["settings"] });
   }

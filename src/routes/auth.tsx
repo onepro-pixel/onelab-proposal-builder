@@ -55,7 +55,10 @@ function AuthPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isOneLab(email)) return toast.error("Använd din @onelab.se-adress.");
+    if (!isOneLab(email)) {
+      toast.error("Använd din @onelab.se-adress.");
+      return;
+    }
     setBusy(true);
     if (mode === "in") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });

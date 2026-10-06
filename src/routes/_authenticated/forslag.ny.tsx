@@ -41,7 +41,8 @@ function NewProposal() {
       .single();
     if (error || !data) {
       setBusy(false);
-      return toast.error("Kunde inte spara förslaget.");
+      toast.error("Kunde inte spara förslaget.");
+      return;
     }
     try {
       await generate({ data: { id: data.id } });

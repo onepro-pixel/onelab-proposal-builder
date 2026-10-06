@@ -9,7 +9,7 @@ function strictSchema(value: unknown): unknown {
   if (!value || typeof value !== "object") return value;
   const source = value as Record<string, unknown>;
   const next = Object.fromEntries(Object.entries(source).map(([key, v]) => [key, strictSchema(v)]));
-  if (source.type === "object") next.additionalProperties = false;
+  if (source["type"] === "object") next["additionalProperties"] = false;
   return next;
 }
 

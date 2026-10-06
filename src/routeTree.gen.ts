@@ -10,33 +10,121 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedInstallningarRouteImport } from './routes/_authenticated/installningar'
+import { Route as DelaTokenRouteImport } from './routes/dela.$token'
+import { Route as AuthenticatedForslagIndexRouteImport } from './routes/_authenticated/forslag.index'
+import { Route as AuthenticatedForslagIdRouteImport } from './routes/_authenticated/forslag.$id'
+import { Route as AuthenticatedForslagNyRouteImport } from './routes/_authenticated/forslag.ny'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedInstallningarRoute =
+  AuthenticatedInstallningarRouteImport.update({
+    id: '/installningar',
+    path: '/installningar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const DelaTokenRoute = DelaTokenRouteImport.update({
+  id: '/dela/$token',
+  path: '/dela/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedForslagIndexRoute =
+  AuthenticatedForslagIndexRouteImport.update({
+    id: '/forslag/',
+    path: '/forslag/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedForslagIdRoute = AuthenticatedForslagIdRouteImport.update({
+  id: '/forslag/$id',
+  path: '/forslag/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedForslagNyRoute = AuthenticatedForslagNyRouteImport.update({
+  id: '/forslag/ny',
+  path: '/forslag/ny',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/installningar': typeof AuthenticatedInstallningarRoute
+  '/dela/$token': typeof DelaTokenRoute
+  '/forslag/$id': typeof AuthenticatedForslagIdRoute
+  '/forslag/ny': typeof AuthenticatedForslagNyRoute
+  '/forslag/': typeof AuthenticatedForslagIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/installningar': typeof AuthenticatedInstallningarRoute
+  '/dela/$token': typeof DelaTokenRoute
+  '/forslag/$id': typeof AuthenticatedForslagIdRoute
+  '/forslag/ny': typeof AuthenticatedForslagNyRoute
+  '/forslag': typeof AuthenticatedForslagIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/installningar': typeof AuthenticatedInstallningarRoute
+  '/dela/$token': typeof DelaTokenRoute
+  '/_authenticated/forslag/$id': typeof AuthenticatedForslagIdRoute
+  '/_authenticated/forslag/ny': typeof AuthenticatedForslagNyRoute
+  '/_authenticated/forslag/': typeof AuthenticatedForslagIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/installningar'
+    | '/dela/$token'
+    | '/forslag/$id'
+    | '/forslag/ny'
+    | '/forslag/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/installningar'
+    | '/dela/$token'
+    | '/forslag/$id'
+    | '/forslag/ny'
+    | '/forslag'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/installningar'
+    | '/dela/$token'
+    | '/_authenticated/forslag/$id'
+    | '/_authenticated/forslag/ny'
+    | '/_authenticated/forslag/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  DelaTokenRoute: typeof DelaTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +136,80 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/installningar': {
+      id: '/_authenticated/installningar'
+      path: '/installningar'
+      fullPath: '/installningar'
+      preLoaderRoute: typeof AuthenticatedInstallningarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/dela/$token': {
+      id: '/dela/$token'
+      path: '/dela/$token'
+      fullPath: '/dela/$token'
+      preLoaderRoute: typeof DelaTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/forslag/': {
+      id: '/_authenticated/forslag/'
+      path: '/forslag'
+      fullPath: '/forslag/'
+      preLoaderRoute: typeof AuthenticatedForslagIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/forslag/$id': {
+      id: '/_authenticated/forslag/$id'
+      path: '/forslag/$id'
+      fullPath: '/forslag/$id'
+      preLoaderRoute: typeof AuthenticatedForslagIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/forslag/ny': {
+      id: '/_authenticated/forslag/ny'
+      path: '/forslag/ny'
+      fullPath: '/forslag/ny'
+      preLoaderRoute: typeof AuthenticatedForslagNyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedInstallningarRoute: typeof AuthenticatedInstallningarRoute
+  AuthenticatedForslagIdRoute: typeof AuthenticatedForslagIdRoute
+  AuthenticatedForslagNyRoute: typeof AuthenticatedForslagNyRoute
+  AuthenticatedForslagIndexRoute: typeof AuthenticatedForslagIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedInstallningarRoute: AuthenticatedInstallningarRoute,
+  AuthenticatedForslagIdRoute: AuthenticatedForslagIdRoute,
+  AuthenticatedForslagNyRoute: AuthenticatedForslagNyRoute,
+  AuthenticatedForslagIndexRoute: AuthenticatedForslagIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  DelaTokenRoute: DelaTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

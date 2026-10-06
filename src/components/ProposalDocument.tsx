@@ -5,6 +5,7 @@ import coverA from "@/assets/brand/cover.jpg.asset.json";
 import examA from "@/assets/brand/exam.jpg.asset.json";
 import programA from "@/assets/brand/program.jpg.asset.json";
 import { Wordmark } from "@/components/Wordmark";
+import { ExaminationContents } from "@/components/ExaminationContents";
 const cover = coverA.url;
 const exam = examA.url;
 const program = programA.url;
@@ -122,6 +123,7 @@ export function ProposalDocument({ content, customerName, editable = false, onCh
           ))}
         </div>
         <T path={["exams", "note"]} as="p" className="mt-6 block text-sm text-muted-foreground" />
+        <ExaminationContents />
         <Footer n={3} />
       </section>
 

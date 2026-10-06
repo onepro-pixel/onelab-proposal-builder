@@ -14,3 +14,6 @@
 - Public share reads go through the SECURITY DEFINER rpc get_shared_proposal; why: no anon SELECT policy on proposals.
 - Access is limited to @onelab.se emails in RLS (is_onelab()) and in the auth gate; why: internal tool.
 - AI settings (services, standard texts, tone) live in the single-row app_settings table; why: editable from the settings page without deploys.
+- AI revisions use the saved current document and preserve its contact; why: follow-up prompts must keep prior edits rather than restart from meeting notes.
+- Examination contents are shared by the renderer and AI prompt in a browser-safe catalog; why: editor, public share, print and generated package descriptions stay consistent.
+- Gateway calls stream structured Responses output inside a server-only helper with request-local run IDs; why: keep credentials private and prevent invalid schemas or duplicate automatic retries.

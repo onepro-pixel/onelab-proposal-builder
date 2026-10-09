@@ -36,9 +36,14 @@ function NewProposal() {
     e.preventDefault();
     setBusy(true);
     const { data: u } = await supabase.auth.getUser();
+    if (!u.user) {
+      setBusy(false);
+      toast.error("Logga in igen för att skapa förslaget.");
+      return;
+    }
     const { data, error } = await supabase
       .from("proposals")
-      .insert({ customer_name: customer, contact_person: contact, notes, user_id: u.user!.id })
+      .insert({ customer_name: customer, contact_person: contact, notes, user_id: u.user.id })
       .select("id")
       .single();
     if (error || !data) {

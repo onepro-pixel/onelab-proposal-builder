@@ -3,6 +3,7 @@ import { jsonSchema, Output, streamText } from "ai";
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayRunId } from "./ai-run-id.server.ts";
 import { proposalSchema, type ProposalContent } from "./proposal-types";
+import { offerSchema, type OfferContent } from "./offer-template";
 
 function strictSchema(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(strictSchema);
@@ -13,7 +14,7 @@ function strictSchema(value: unknown): unknown {
   return next;
 }
 
-export async function writeProposal(system: string, user: string): Promise<ProposalContent> {
+export async function writeProposal(system: string, user: string, useOffer = false): Promise<ProposalContent> {
   const key = process.env["LOVABLE_API_KEY"];
   if (!key) throw new Error("AI-tjänsten är inte konfigurerad.");
   const request = getRequest();
@@ -42,11 +43,16 @@ export async function writeProposal(system: string, user: string): Promise<Propo
       forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto",
       store: false, include: ["reasoning.encrypted_content"],
     } },
-    output: Output.object({ schema: jsonSchema<Omit<ProposalContent, "contact">>(strictSchema(proposalSchema) as Parameters<typeof jsonSchema>[0]) }),
+    output: Output.object({ schema: jsonSchema<Omit<ProposalContent, "contact"> | OfferContent>(strictSchema(useOffer ? offerSchema : proposalSchema) as Parameters<typeof jsonSchema>[0]) }),
   });
   try {
     const output = await result.output;
-    return { ...output, contact: { name: "", email: "", web: "onelab.se/kontakt" } };
+    const contact = { name: "", email: "", web: "onelab.se/kontakt" };
+    if (useOffer) {
+      const offer = output as OfferContent;
+      return { offer, title: offer.title, subtitle: offer.subtitle, contact } as ProposalContent;
+    }
+    return { ...output, contact } as ProposalContent;
   } catch (error) {
     if (error instanceof Error) throw new Error(error.message);
     throw new Error("AI:n kunde inte skriva ett komplett förslag. Din text finns kvar.");

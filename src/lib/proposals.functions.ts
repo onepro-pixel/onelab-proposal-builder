@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { type ProposalContent } from "./proposal-types";
 import { examinationRules } from "./examination-content";
+import { defaultOffer, offerRules } from "./offer-template";
 
 export const generateProposal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -21,6 +22,7 @@ export const generateProposal = createServerFn({ method: "POST" })
     if (settingsError || !s) throw new Error("Kunde inte läsa OneLabs tjänsteunderlag. Försök igen.");
 
     if (data.instruction && !p.content) throw new Error("Skriv ett första utkast innan du justerar förslaget.");
+    const useOffer = !data.instruction || Boolean((p.content as unknown as ProposalContent | null)?.offer);
     const system = `Du är en erfaren säljare och skribent på OneLab, ett svenskt företag inom företagshälsa.
 Du skriver skräddarsydda kundförslag på svenska utifrån mötesanteckningar från Sales Kong.
 
@@ -43,6 +45,7 @@ Regler:
 - Hitta inte på siffror om antal anställda om de inte finns i anteckningarna.
 - Håll varje sektion kort och konkret, normalt 1–3 meningar per textfält.
 ${examinationRules}
+${useOffer ? `${offerRules}\nGRUNDMALL:\n${JSON.stringify(defaultOffer(p.customer_name))}` : ""}
 ${data.instruction ? "Du redigerar ett BEFINTLIGT förslag. Utför bara den begärda ändringen, bevara övriga texter, priser och manuella ändringar. Returnera hela dokumentet med samma struktur. Korrigera alltid eventuella påståenden att nattarbete ingår i ett paket." : ""}`;
 
     const user = `Kund: ${p.customer_name}
@@ -53,7 +56,7 @@ ${p.notes}
 ${data.instruction ? `\nNuvarande förslag:\n${JSON.stringify(p.content)}\n\nÖnskad justering:\n${data.instruction}` : ""}`;
 
     const { writeProposal } = await import("./proposal-ai.server");
-    const content = await writeProposal(system, user);
+    const content = await writeProposal(system, user, useOffer);
     const email = (claims as { email?: string }).email ?? "";
     const local = email.split("@")[0] ?? "";
     const name = local

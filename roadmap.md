@@ -1,4 +1,8 @@
 # Requested changes
+- [ ] Replace new proposals with the reference PDF's landscape template and mostly fixed copy.
+- [ ] Apply standard prices, customer-specific overrides, relevant add-ons and the vibration minimum.
+- [ ] Preserve editing, revisions, sharing and existing proposals; paginate extra services.
+- [ ] Verify real generation, revision, shared view and landscape PDF output.
 - [x] Add prompts that revise the current proposal.
 - [x] Add expandable Bas/Plus examination contents in editor and shared proposal.
 - [x] Treat night-work examination as a needs-based add-on, not included in Plus.

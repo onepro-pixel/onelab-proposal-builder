@@ -6,6 +6,7 @@ import examA from "@/assets/brand/exam.jpg.asset.json";
 import programA from "@/assets/brand/program.jpg.asset.json";
 import { Wordmark } from "@/components/Wordmark";
 import { ExaminationContents } from "@/components/ExaminationContents";
+import { OfferDocument } from "@/components/OfferDocument";
 const cover = coverA.url;
 const exam = examA.url;
 const program = programA.url;
@@ -32,6 +33,7 @@ function removeIn<T>(obj: T, path: Path, index: number): T {
 }
 
 export function ProposalDocument({ content, customerName, editable = false, onChange }: Props) {
+  if (content.offer) return <OfferDocument content={content} customerName={customerName} editable={editable} onChange={onChange} />;
   const c = content;
   const update = (path: Path, v: string) => onChange?.(setIn(c, path, v));
   const remove = (path: Path, i: number) => onChange?.(removeIn(c, path, i));

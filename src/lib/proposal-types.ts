@@ -1,6 +1,8 @@
+import type { OfferContent } from "./offer-template";
 export type Item = { name: string; text: string };
 
 export type ProposalContent = {
+  offer?: OfferContent;
   title: string;
   subtitle: string;
   intro: { lead: string; body: string };

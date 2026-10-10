@@ -22,12 +22,12 @@ describe("reference offer", () => {
   });
   it("has a strict structured-output schema", () => {
     function check(schema: Record<string, unknown>) {
-      if (schema.type === "object") {
-        const props = schema.properties as Record<string, Record<string, unknown>>;
-        expect(schema.additionalProperties).toBe(false);
-        expect(schema.required).toEqual(Object.keys(props));
+      if (schema["type"] === "object") {
+        const props = schema["properties"] as Record<string, Record<string, unknown>>;
+        expect(schema["additionalProperties"]).toBe(false);
+        expect(schema["required"]).toEqual(Object.keys(props));
         Object.values(props).forEach(check);
-      } else if (schema.type === "array") check(schema.items as Record<string, unknown>);
+      } else if (schema["type"] === "array") check(schema["items"] as Record<string, unknown>);
     }
     check(offerSchema);
   });

@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from "react";
+import { Fragment, useRef, type ReactNode } from "react";
 import { ClipboardList, Stethoscope, ChartNoAxesCombined, ShieldCheck, Check, Clock3, CalendarDays, Building2, Route, LockKeyhole, FlaskConical } from "lucide-react";
 import type { ProposalContent } from "@/lib/proposal-types";
 import type { OfferContent, OfferItem } from "@/lib/offer-template";
@@ -6,10 +6,10 @@ import { Wordmark } from "./Wordmark";
 import { ExaminationContents } from "./ExaminationContents";
 import cover from "@/assets/brand/cover.jpg.asset.json";
 
-type Props = { content: ProposalContent; customerName: string; editable?: boolean; onChange?: (next: ProposalContent) => void };
+type Props = { content: ProposalContent; customerName: string; editable?: boolean; onChange?: ((next: ProposalContent) => void) | undefined };
 type Path = (string | number)[];
 
-function Field({ value, editable, onCommit, className = "" }: { value: string; editable: boolean; onCommit: (v: string) => void; className?: string }) {
+function Field({ value, editable, onCommit, className = "" }: { value: string; editable: boolean; onCommit: (v: string) => void; className?: string | undefined }) {
   const ref = useRef<HTMLSpanElement>(null);
   return <span ref={ref} className={`offer-field ${className}`} data-editable={editable || undefined} contentEditable={editable} suppressContentEditableWarning onBlur={(e) => {
     if (editable && e.currentTarget.innerText !== value) onCommit(e.currentTarget.innerText);
@@ -81,11 +81,11 @@ export function OfferDocument({ content, customerName, editable = false, onChang
         return <div key={i}><Icon aria-hidden="true" /><div><h3>{text(["practical", i, "name"])}</h3><p>{text(["practical", i, "text"])}</p></div></div>;
       })}</div><aside className="offer-summary"><p className="offer-label">{selected?.name}</p><strong className="offer-price">{selected?.price}</strong><p>{selected?.billing}</p><div className="offer-summary-lines">{offer.packages.filter((p) => p !== selected).map((p, i) => <div key={i}><span>{p.name}<small>{p.billing}</small></span><strong>{p.price}</strong></div>)}<div><span>Uppföljning och återbesök<small>Aktiv uppföljning och digitala läkarsamtal</small></span><strong>Ingår</strong></div>{offer.extras.length > 0 && <div><span>Tillval och kompletterande tester<small>Specificeras på följande sidor</small></span><strong>Se tillval</strong></div>}</div><p>{text(["pricingNote"])}</p>{content.contact?.email && <p className="offer-contact">{content.contact.name}<br />{content.contact.email}</p>}</aside></div>
     </>)}
-    {extraPages.map((extras, pageIndex) => page(5 + pageIndex, "Tillval · Tester och priser", <>
+    {extraPages.map((extras, pageIndex) => <Fragment key={pageIndex}>{page(5 + pageIndex, "Tillval · Tester och priser", <>
       <h2>{text(["extrasHeading"])}</h2><p className="offer-intro">{text(["extrasIntro"])}</p><div className="offer-extras">{extras.map((extra, localIndex) => {
         const i = pageIndex * 4 + localIndex;
         return <article key={i}><div className="offer-extra-title"><h3>{text(["extras", i, "name"])}</h3><div><strong>{text(["extras", i, "price"])}</strong><p>{text(["extras", i, "billing"])}</p></div></div><p>{text(["extras", i, "description"])}</p>{extra.condition && <p className="offer-condition">{text(["extras", i, "condition"])}</p>}</article>;
       })}</div>
-    </>))}
+    </>)}</Fragment>)}
   </div>;
 }

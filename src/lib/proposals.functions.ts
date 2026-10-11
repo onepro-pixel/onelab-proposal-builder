@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { type ProposalContent } from "./proposal-types";
 import { examinationRules } from "./examination-content";
-import { defaultOffer, offerRules } from "./offer-template";
+import { adaptationRules, defaultOffer, offerRules } from "./offer-template";
 
 export const generateProposal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -81,6 +81,57 @@ function schemaOf(value: unknown): Record<string, unknown> {
 }
 export const offerSchema = schemaOf({ ...defaultOffer("Kundnamn"), extras: [{ name: "", price: "", billing: "", description: "", condition: "" }] });
 
+// The AI never rewrites the fixed template. It only returns these adaptable
+// fields, which are merged into defaultOffer deterministically.
+export type OfferAdaptation = {
+  title: string; subtitle: string; badge: string;
+  packageIntro: string; followupIntro: string; practicalIntro: string; pricingNote: string;
+  selectedPackage: string;
+  packagePrices: { name: string; price: string; billing: string }[];
+  extras: OfferExtra[];
+};
+
+export const offerAdaptationSchema = schemaOf({
+  title: "", subtitle: "", badge: "", packageIntro: "", followupIntro: "", practicalIntro: "", pricingNote: "",
+  selectedPackage: "",
+  packagePrices: [{ name: "", price: "", billing: "" }],
+  extras: [{ name: "", price: "", billing: "", description: "", condition: "" }],
+});
+
+export function applyAdaptation(customer: string, a: OfferAdaptation): OfferContent {
+  const offer = defaultOffer(customer);
+  if (a.title?.trim()) offer.title = a.title.trim();
+  if (a.subtitle?.trim()) offer.subtitle = a.subtitle.trim();
+  if (a.badge?.trim()) offer.badge = a.badge.trim();
+  if (a.packageIntro?.trim()) offer.packageIntro = a.packageIntro.trim();
+  if (a.followupIntro?.trim()) offer.followupIntro = a.followupIntro.trim();
+  if (a.practicalIntro?.trim()) offer.practicalIntro = a.practicalIntro.trim();
+  if (a.pricingNote?.trim()) offer.pricingNote = a.pricingNote.trim();
+  for (const override of a.packagePrices ?? []) {
+    const pkg = offer.packages.find((p) => p.name === override.name);
+    if (!pkg) continue;
+    if (override.price?.trim()) pkg.price = override.price.trim();
+    if (override.billing?.trim()) pkg.billing = override.billing.trim();
+  }
+  if (offer.packages.some((p) => p.name === a.selectedPackage)) offer.selectedPackage = a.selectedPackage;
+  const metricFor = (name: string) => offer.packages.find((p) => p.name === name)?.price;
+  const bas = metricFor("Hälsoundersökning Bas");
+  const plus = metricFor("Hälsoundersökning Plus");
+  if (bas) offer.metrics[0] = { ...offer.metrics[0], value: bas };
+  if (plus) offer.metrics[1] = { ...offer.metrics[1], value: plus };
+  offer.extras = (a.extras ?? []).filter((e) => e.name?.trim());
+  return offer;
+}
+
+export const adaptationRules = `
+Du ska INTE skriva en ny offert. Grundmallen är fast och färdigskriven. Du returnerar bara de fält som ska anpassas efter mötesanteckningarna; allt annat i mallen lämnas orört.
+Anpassa: title och subtitle (nämn kundens namn naturligt), badge (t.ex. "Offert · Hälsoundersökning Bas"), packageIntro, followupIntro, practicalIntro och pricingNote (korta, konkreta, anpassade efter kundens bransch och behov), selectedPackage (huvudupplägget, Bas om inget annat framgår), packagePrices (endast priser som avviker från standardpriserna, matcha paketnamnen exakt) och extras (relevanta tillval, tom lista när inga tillval är relevanta).
+Standardpriser: Digital 1 290 kr/person; Bas 2 690 kr/person; Plus 3 190 kr/person. Kundspecifika priser som uttryckligen finns i anteckningarna har företräde inom den offerten. Ange bara priser i packagePrices som ska ändras.
+Tillvalspriser: PSA-test (via remiss) 490 kr/person; Hörseltest 990 kr/person; Spirometri 990 kr/person; Screening för vibration 490 kr/person; Vibrationstester 1 490 kr/person (MINST 10 personer per tillfälle, skriv alltid detta i condition); Sjuk- och friskanmälan verktyg 490 kr/år/person. Screening för vibration och Vibrationstester är olika tjänster.
+Prisfält bara belopp och kr (t.ex. "2 490 kr"), aldrig "från" eller "/person"; enheten/perioden/betalaren hör till billing. Inget standardpris är per år om inte anteckningarna anger årsavtal; undantag sjuk- och friskanmälan som är per år/person.
+Medicinska kontroller bara vid relevant exponering; nattarbete separat tillval med "Pris enligt offert" om pris saknas. Lägg inte till andra tjänster utan stöd i källunderlaget. Varje extras-description högst 55 ord. Hitta inte på garantier, kundresultat eller medicinska påståenden.
+`;
+
 export const offerRules = `
 Använd grundmallen som FAST textunderlag. Kopiera dess formuleringar i huvudsak, inte en helt nyskriven offert. Anpassa kundnamn, introduktion, erbjudande, betalare, priser och relevanta tillval efter mötesanteckningarna.
 Vanligtvis fyra sidor: introduktion, undersökningsupplägg, rapport/uppföljning och praktiskt/pris. Extra tjänster läggs i extras, som ger extra sidor. Extras ska vara tom när inga tillval är relevanta.

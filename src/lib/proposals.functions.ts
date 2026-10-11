@@ -45,7 +45,7 @@ Regler:
 - Hitta inte på siffror om antal anställda om de inte finns i anteckningarna.
 - Håll varje sektion kort och konkret, normalt 1–3 meningar per textfält.
 ${examinationRules}
-${useOffer ? `${offerRules}\nGRUNDMALL:\n${JSON.stringify(defaultOffer(p.customer_name))}` : ""}
+${useOffer ? (data.instruction ? `${offerRules}\nGRUNDMALL:\n${JSON.stringify(defaultOffer(p.customer_name))}` : `${adaptationRules}\nGRUNDMALL (fast, ändras aldrig i övrigt):\n${JSON.stringify(defaultOffer(p.customer_name))}`) : ""}
 ${data.instruction ? "Du redigerar ett BEFINTLIGT förslag. Utför bara den begärda ändringen, bevara övriga texter, priser och manuella ändringar. Returnera hela dokumentet med samma struktur. Korrigera alltid eventuella påståenden att nattarbete ingår i ett paket." : ""}`;
 
     const user = `Kund: ${p.customer_name}
@@ -55,8 +55,10 @@ Mötesanteckningar:
 ${p.notes}
 ${data.instruction ? `\nNuvarande förslag:\n${JSON.stringify(p.content)}\n\nÖnskad justering:\n${data.instruction}` : ""}`;
 
-    const { writeProposal } = await import("./proposal-ai.server");
-    const content = await writeProposal(system, user, useOffer);
+    const { writeOfferAdaptation, writeProposal } = await import("./proposal-ai.server");
+    const content = useOffer && !data.instruction
+      ? await writeOfferAdaptation(system, user, p.customer_name)
+      : await writeProposal(system, user, useOffer);
     const email = (claims as { email?: string }).email ?? "";
     const local = email.split("@")[0] ?? "";
     const name = local

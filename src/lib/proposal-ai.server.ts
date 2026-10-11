@@ -3,7 +3,7 @@ import { jsonSchema, Output, streamText } from "ai";
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayRunId } from "./ai-run-id.server.ts";
 import { proposalSchema, type ProposalContent } from "./proposal-types";
-import { offerSchema, type OfferContent } from "./offer-template";
+import { applyAdaptation, offerAdaptationSchema, offerSchema, type OfferAdaptation, type OfferContent } from "./offer-template";
 
 function strictSchema(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(strictSchema);

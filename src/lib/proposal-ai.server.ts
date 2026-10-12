@@ -52,7 +52,7 @@ async function callAI<T>(system: string, user: string, schema: unknown): Promise
   try {
     return await result.output;
   } catch (error) {
-    const captured: Error | null = streamError;
+    const captured = streamError as Error | null;
     if (captured) throw new Error(captured.message);
     if (error instanceof Error) throw new Error(error.message);
     throw new Error("AI:n kunde inte skriva ett komplett förslag. Din text finns kvar.");

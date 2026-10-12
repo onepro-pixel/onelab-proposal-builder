@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { defaultOffer, offerSchema } from "@/lib/offer-template";
+import { applyAdaptation, defaultOffer, offerSchema } from "@/lib/offer-template";
 import { ProposalDocument } from "@/components/ProposalDocument";
 import type { ProposalContent } from "@/lib/proposal-types";
 

@@ -117,8 +117,10 @@ export function applyAdaptation(customer: string, a: OfferAdaptation): OfferCont
   const metricFor = (name: string) => offer.packages.find((p) => p.name === name)?.price;
   const bas = metricFor("Hälsoundersökning Bas");
   const plus = metricFor("Hälsoundersökning Plus");
-  if (bas) offer.metrics[0] = { ...offer.metrics[0], value: bas };
-  if (plus) offer.metrics[1] = { ...offer.metrics[1], value: plus };
+  const basMetric = offer.metrics[0];
+  const plusMetric = offer.metrics[1];
+  if (bas && basMetric) offer.metrics[0] = { value: bas, label: basMetric.label };
+  if (plus && plusMetric) offer.metrics[1] = { value: plus, label: plusMetric.label };
   offer.extras = (a.extras ?? []).filter((e) => e.name?.trim());
   return offer;
 }

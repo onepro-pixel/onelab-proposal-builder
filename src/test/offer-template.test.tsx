@@ -47,7 +47,7 @@ describe("applyAdaptation", () => {
     expect(offer.steps).toEqual(defaultOffer("Byggbolaget AB").steps);
     // Anpassade fält
     expect(offer.packages.find((p) => p.name === "Hälsoundersökning Bas")?.price).toBe("2 490 kr");
-    expect(offer.metrics[0].value).toBe("2 490 kr");
+    expect(offer.metrics[0]?.value).toBe("2 490 kr");
     expect(offer.packages.find((p) => p.name === "Hälsoundersökning Digital")?.price).toBe("1 290 kr");
     expect(offer.extras).toHaveLength(1);
     expect(offer.selectedPackage).toBe("Hälsoundersökning Bas");

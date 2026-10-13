@@ -13,10 +13,10 @@ const cover = coverA.url;
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Logga in – OneLab Förslag" },
-      { name: "description", content: "Inloggning för OneLabs medarbetare." },
-      { property: "og:title", content: "Logga in – OneLab Förslag" },
-      { property: "og:description", content: "Inloggning för OneLabs medarbetare." },
+      { title: "Logga in – Offertverktyget" },
+      { name: "description", content: "Inloggning för användare." },
+      { property: "og:title", content: "Logga in – Offertverktyget" },
+      { property: "og:description", content: "Inloggning för användare." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const isOneLab = (e: string) => e.trim().toLowerCase().endsWith("@onelab.se");
+const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -37,19 +37,12 @@ function AuthPage() {
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
-      if (!isOneLab(data.user.email ?? "")) {
-        await supabase.auth.signOut();
-        toast.error("Endast @onelab.se-konton har åtkomst.");
-        return;
-      }
+      
       navigate({ to: "/forslag", replace: true });
     });
     const { data } = supabase.auth.onAuthStateChange((ev, session) => {
       if (ev === "SIGNED_IN" && session) {
-        if (!isOneLab(session.user.email ?? "")) {
-          supabase.auth.signOut();
-          toast.error("Endast @onelab.se-konton har åtkomst.");
-        } else navigate({ to: "/forslag", replace: true });
+        navigate({ to: "/forslag", replace: true });
       }
     });
     return () => data.subscription.unsubscribe();
@@ -57,8 +50,8 @@ function AuthPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isOneLab(email)) {
-      toast.error("Använd din @onelab.se-adress.");
+    if (!isValidEmail(email)) {
+      toast.error("Ange en giltig e-postadress.");
       return;
     }
     setBusy(true);
@@ -80,7 +73,7 @@ function AuthPage() {
   async function google() {
     const r = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin + "/auth",
-      extraParams: { hd: "onelab.se", prompt: "select_account" },
+      extraParams: { prompt: "select_account" },
     });
     if (r.error) toast.error("Kunde inte logga in med Google.");
   }
@@ -92,7 +85,7 @@ function AuthPage() {
         <div className="mx-auto w-full max-w-sm">
           <p className="eyebrow mb-4">Förslagsverktyget</p>
           <h1 className="display text-5xl">{mode === "in" ? "Välkommen tillbaka" : "Skapa konto"}</h1>
-          <p className="mt-4 text-muted-foreground">För OneLabs medarbetare. Logga in med din @onelab.se-adress.</p>
+          <p className="mt-4 text-muted-foreground">För användare. Logga in med din @onelab.se-adress.</p>
           {sent ? (
             <div className="mt-10 rounded-2xl bg-sand p-6">
               Kolla din inkorg och bekräfta e-postadressen för att komma igång.

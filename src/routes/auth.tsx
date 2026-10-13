@@ -13,9 +13,9 @@ const cover = coverA.url;
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Logga in – Offertverktyget" },
+      { title: "Logga in – Proposo" },
       { name: "description", content: "Inloggning för användare." },
-      { property: "og:title", content: "Logga in – Offertverktyget" },
+      { property: "og:title", content: "Logga in – Proposo" },
       { property: "og:description", content: "Inloggning för användare." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

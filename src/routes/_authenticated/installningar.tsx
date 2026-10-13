@@ -9,9 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/_authenticated/installningar")({
   head: () => ({
     meta: [
-      { title: "Inställningar – Offertverktyget" },
+      { title: "Inställningar – Proposo" },
       { name: "description", content: "Tjänstebeskrivningar och standardtexter för AI:n." },
-      { property: "og:title", content: "Inställningar – Offertverktyget" },
+      { property: "og:title", content: "Inställningar – Proposo" },
       { property: "og:description", content: "Tjänstebeskrivningar och standardtexter för AI:n." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

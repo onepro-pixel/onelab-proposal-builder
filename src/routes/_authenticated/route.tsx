@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Wordmark } from "@/components/Wordmark";
+
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -30,7 +30,7 @@ function Layout() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-8">
             <Link to="/forslag" className="flex items-center">
-              <Wordmark className="h-5" />
+              <span className="text-lg font-semibold tracking-tight">Proposo</span>
               <span className="ml-2 text-sm text-muted-foreground">Förslag</span>
             </Link>
             <nav className="flex gap-1">
@@ -40,6 +40,7 @@ function Layout() {
               <Link to="/forslag/ny" className={link} activeProps={{ className: "bg-secondary" }}>
                 Ny offert
               </Link>
+              <Link to="/varumarke" className={link} activeProps={{ className: "bg-secondary" }}>Varumärke</Link>
               <Link to="/installningar" className={link} activeProps={{ className: "bg-secondary" }}>
                 Inställningar
               </Link>

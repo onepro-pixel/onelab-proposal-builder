@@ -1,10 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type CSSProperties } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { generateDemoProposal } from "@/lib/demo-ai.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/demo")({
-  head: () => ({ meta: [{ title: "Proposo – Interaktiv demo" }, { name: "description", content: "Testa Proposo utan konto eller AI-krediter." }] }),
+  head: () => ({ meta: [{ title: "Proposo – Interaktiv demo" }, { name: "description", content: "Testa offertredigering eller generera ett riktigt AI-förslag med inloggning." }] }),
   component: Demo,
 });
+
+const exampleServices = `Nordform Studio erbjuder:
+Webbstrategi och design: 25 000 kr per projekt.
+Utveckling av responsiv webbplats med CMS, fastighetssidor och kontaktformulär: 60 000 kr per projekt.
+Support och förvaltning: 1 500 kr per månad.
+Inga andra tjänster eller priser får erbjudas.`;
 
 const exampleNotes = `Möte med Berg & Dal Fastigheter, 13 oktober 2026.
 Deltagare: Sofia Berg, marknadschef.
@@ -28,6 +37,10 @@ function Demo() {
   const [company, setCompany] = useState("Nordform Studio");
   const [client, setClient] = useState("Berg & Dal Fastigheter");
   const [notes, setNotes] = useState(exampleNotes);
+  const [services, setServices] = useState(exampleServices);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const generateAI = useServerFn(generateDemoProposal);
   const [primary, setPrimary] = useState("#193b35");
   const [accent, setAccent] = useState("#c7a36b");
   const [font, setFont] = useState("Georgia, serif");
@@ -60,7 +73,23 @@ function Demo() {
     else if (kind === "photo") setPhoto(url);
     else { setCustomFont(url); setFont("DemoBrandFont, Georgia, serif"); }
   }
-  function makeDemo() {
+  async function makeDemo() {
+    setAiBusy(true);
+    setAiError("");
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) throw new Error("Logga in för att använda riktig AI. Den färdiga exempelofferten kan testas utan konto.");
+      const result = await generateAI({ data: { company, client, notes, services } });
+      setTitle(result.title);
+      setIntro(result.intro);
+      setItems(result.items);
+      setGenerated(true);
+      setShowPreview(true);
+    } catch (error) {
+      setAiError(error instanceof Error ? error.message : "AI-genereringen misslyckades. Försök igen.");
+    } finally { setAiBusy(false); }
+  }
+  function makeRuleBasedDemo() {
     const lower = notes.toLowerCase();
     const website = /webb|hemsida|fastighet/.test(lower);
     const customer = client.trim() || "Kunden";
@@ -104,7 +133,7 @@ function Demo() {
       <aside className="demo-no-print" style={{ minWidth: 0 }}>
         <div style={card}>
           <h1 style={{ fontSize: 23, fontWeight: 800, marginBottom: 7 }}>Testa Proposo</h1>
-          <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>Allt är påhittat. Den här demon fungerar utan konto, databas eller AI-krediter. Ändringar sparas inte.</p>
+          <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>Exempelföretaget är påhittat. AI-generering använder riktig AI och kräver inloggning och tillgängliga AI-krediter. Du kan redigera exempelofferten utan konto. Ändringar sparas inte.</p>
         </div>
         <div style={card}>
           <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 18 }}>1. Ditt företag</h2>
@@ -127,8 +156,12 @@ function Demo() {
           <label style={label}>Kundens namn</label><input style={demoField} value={client} onChange={e => setClient(e.target.value)} />
           <label style={{ ...label, marginTop: 15 }}>Mötesanteckningar</label>
           <textarea style={{ ...demoField, minHeight: 235, resize: "vertical", fontSize: 12, lineHeight: 1.6 }} value={notes} onChange={e => setNotes(e.target.value)} />
-          <button style={{ ...btn, width: "100%", marginTop: 12 }} onClick={makeDemo}>Skapa demo-offert</button>
-          <p style={{ fontSize: 11, color: "#64748b", marginTop: 10 }}>Demo-genereringen använder fördefinierade regler, inte AI. Inga anteckningar skickas till en AI-tjänst.</p>
+          <label style={{ ...label, marginTop: 15 }}>Ditt företags tjänster och priser (AI-underlag)</label>
+          <textarea style={{ ...demoField, minHeight: 160, fontSize: 12, lineHeight: 1.6 }} value={services} onChange={e => setServices(e.target.value)} />
+          <button disabled={aiBusy} style={{ ...btn, width: "100%", marginTop: 12, opacity: aiBusy ? 0.6 : 1 }} onClick={() => void makeDemo()}>{aiBusy ? "AI skriver offerten…" : "Skapa offert med AI"}</button>
+          {aiError && <p role="alert" style={{ fontSize: 12, color: "#b42318", marginTop: 10 }}>{aiError} <a href="/auth" style={{ textDecoration: "underline" }}>Logga in</a></p>}
+          <button style={{ width: "100%", marginTop: 12, padding: 10, border: "1px solid #d9dce3", borderRadius: 9, background: "white" }} onClick={makeRuleBasedDemo}>Visa exempel utan AI</button>
+          <p style={{ fontSize: 11, color: "#64748b", marginTop: 10 }}>AI läser mötesanteckningarna och företagets tjänsteunderlag. Kontrollera alltid innehåll och priser före utskick.</p>
         </div>
       </aside>
       <section style={{ minWidth: 0 }}>

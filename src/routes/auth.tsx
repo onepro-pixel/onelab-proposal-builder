@@ -6,9 +6,9 @@ import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import coverA from "@/assets/brand/cover.jpg.asset.json";
-import { Wordmark } from "@/components/Wordmark";
-const cover = coverA.url;
+
+
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -81,11 +81,11 @@ function AuthPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col justify-between p-10 lg:p-16">
-        <Wordmark className="h-7" />
+        <span className="text-3xl font-bold tracking-tight">proposo.</span>
         <div className="mx-auto w-full max-w-sm">
           <p className="eyebrow mb-4">Förslagsverktyget</p>
           <h1 className="display text-5xl">{mode === "in" ? "Välkommen tillbaka" : "Skapa konto"}</h1>
-          <p className="mt-4 text-muted-foreground">För användare. Logga in med din @onelab.se-adress.</p>
+          <p className="mt-4 text-muted-foreground">Logga in med din e-postadress eller testa demon utan konto.</p>
           {sent ? (
             <div className="mt-10 rounded-2xl bg-sand p-6">
               Kolla din inkorg och bekräfta e-postadressen för att komma igång.
@@ -103,7 +103,7 @@ function AuthPage() {
               <form onSubmit={submit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">E-post</Label>
-                  <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="fornamn.efternamn@onelab.se" className="h-12" />
+                  <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="namn@foretag.se" className="h-12" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pw">Lösenord</Label>

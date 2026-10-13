@@ -14,7 +14,7 @@ function strictSchema(value: unknown): unknown {
   return next;
 }
 
-async function callAI<T>(system: string, user: string, schema: unknown): Promise<T> {
+export async function callAI<T>(system: string, user: string, schema: unknown): Promise<T> {
   const key = process.env["LOVABLE_API_KEY"];
   if (!key) throw new Error("AI-tjänsten är inte konfigurerad.");
   const request = getRequest();

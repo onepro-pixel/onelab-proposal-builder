@@ -1,0 +1,170 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState, type CSSProperties } from "react";
+
+export const Route = createFileRoute("/demo")({
+  head: () => ({ meta: [{ title: "Proposo – Interaktiv demo" }, { name: "description", content: "Testa Proposo utan konto eller AI-krediter." }] }),
+  component: Demo,
+});
+
+const exampleNotes = `Möte med Berg & Dal Fastigheter, 13 oktober 2026.
+Deltagare: Sofia Berg, marknadschef.
+De förvaltar 18 fastigheter och vill modernisera sin webbplats.
+Behov: ny responsiv webbplats, tydligare presentation av fastigheterna, bättre kontaktformulär och enkel redigering.
+Önskad lansering: februari 2027.
+Budgetdiskussion: 85 000 kr för webbprojektet. Löpande support 1 500 kr/mån.
+Viktigt: tydlig tidsplan, utbildning för redaktörer och möjlighet att växa med fler fastigheter.
+Nästa steg: skicka offert senast fredag.`;
+
+type Item = { name: string; description: string; price: string };
+const initialItems: Item[] = [
+  { name: "Webbstrategi & design", description: "Workshop, struktur, wireframes och visuell design", price: "25 000 kr" },
+  { name: "Utveckling & lansering", description: "Responsiv webbplats, fastighetssidor och kontaktformulär", price: "60 000 kr" },
+  { name: "Support & förvaltning", description: "Uppdateringar och teknisk support", price: "1 500 kr/mån" },
+];
+const base: CSSProperties = { fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" };
+const demoField: CSSProperties = { width: "100%", border: "1px solid #d9dce3", borderRadius: 9, padding: "10px 12px", background: "white", color: "#1c2333" };
+
+function Demo() {
+  const [company, setCompany] = useState("Nordform Studio");
+  const [client, setClient] = useState("Berg & Dal Fastigheter");
+  const [notes, setNotes] = useState(exampleNotes);
+  const [primary, setPrimary] = useState("#193b35");
+  const [accent, setAccent] = useState("#c7a36b");
+  const [font, setFont] = useState("Georgia, serif");
+  const [logo, setLogo] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [customFont, setCustomFont] = useState<string | null>(null);
+  const [title, setTitle] = useState("En digital närvaro som växer med er");
+  const [intro, setIntro] = useState("Vi föreslår en modern och lättskött webbplats som presenterar fastigheterna tydligt och gör det enkelt för besökare att ta kontakt.");
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [showPreview, setShowPreview] = useState(true);
+  const [generated, setGenerated] = useState(true);
+  useEffect(() => {
+    return () => { [logo, photo, customFont].forEach(url => { if (url) URL.revokeObjectURL(url); }); };
+  }, [logo, photo, customFont]);
+  useEffect(() => {
+    if (!customFont) return;
+    const face = new FontFace("DemoBrandFont", `url("${customFont}")`);
+    face.load().then(loaded => document.fonts.add(loaded)).catch(() => {});
+  }, [customFont]);
+
+  function upload(file: File | undefined, kind: "logo" | "photo" | "font") {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { window.alert("Max 10 MB per fil"); return; }
+    const imageTypes = ["image/png", "image/jpeg", "image/webp"];
+    if (kind === "font" ? !/\.(woff2|ttf|otf)$/i.test(file.name) : !imageTypes.includes(file.type)) {
+      window.alert("Filtypen stöds inte"); return;
+    }
+    const url = URL.createObjectURL(file);
+    if (kind === "logo") setLogo(url);
+    else if (kind === "photo") setPhoto(url);
+    else { setCustomFont(url); setFont("DemoBrandFont, Georgia, serif"); }
+  }
+  function makeDemo() {
+    const lower = notes.toLowerCase();
+    const website = /webb|hemsida|fastighet/.test(lower);
+    const customer = client.trim() || "Kunden";
+    setTitle(website ? `En digital närvaro som växer med ${customer}` : `Ett skräddarsytt förslag till ${customer}`);
+    setIntro(website
+      ? `Utifrån vårt möte föreslår vi en responsiv, lättskött webbplats med tydlig presentation av ert erbjudande, enkel administration och ett smidigt kontaktflöde.`
+      : `Tack för ett givande möte. Här är vårt förslag baserat på era mål och de behov som framkom i samtalet. Vi anpassar omfattning och tidplan tillsammans.`);
+    setItems(website ? initialItems : [
+      { name: "Analys och planering", description: "Behovskartläggning, prioriteringar och projektplan", price: "Pris enligt överenskommelse" },
+      { name: "Genomförande", description: "Leverans anpassad efter mötets omfattning", price: "Pris enligt överenskommelse" },
+    ]);
+    setGenerated(true);
+    setShowPreview(true);
+  }
+  const updateItem = (i: number, key: keyof Item, value: string) => setItems(current => current.map((item, j) => j === i ? { ...item, [key]: value } : item));
+  const label: CSSProperties = { display: "block", fontSize: 12, fontWeight: 700, marginBottom: 6, color: "#475569" };
+  const card: CSSProperties = { background: "white", border: "1px solid #e3e7ee", borderRadius: 16, padding: 22, marginBottom: 16 };
+  const btn: CSSProperties = { border: "none", background: primary, color: "white", borderRadius: 9, padding: "12px 18px", fontWeight: 700, cursor: "pointer" };
+
+  return <main style={{ ...base, background: "#f3f5f8", minHeight: "100vh", color: "#17212d" }}>
+    <style>{`
+      @media print {
+        body { background: white !important; }
+        .demo-no-print { display: none !important; }
+        .demo-paper { box-shadow: none !important; border: 0 !important; width: 100% !important; max-width: none !important; margin: 0 !important; }
+        .demo-page { break-after: page; min-height: 270mm !important; }
+        .demo-page:last-child { break-after: auto; }
+        @page { size: A4; margin: 0; }
+        print-color-adjust: exact; -webkit-print-color-adjust: exact;
+      }
+      .demo-paper input, .demo-paper textarea { font: inherit; }
+      .demo-edit { border: 1px dashed transparent; padding: 3px; width: 100%; background: transparent; color: inherit; }
+      .demo-edit:focus { outline: 1px dashed #9aa7b7; }
+      @media (max-width: 960px) { .demo-columns { grid-template-columns: 1fr !important; } }
+    `}</style>
+    <header className="demo-no-print" style={{ background: "#fff", borderBottom: "1px solid #e3e7ee", padding: "16px 5%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+      <div><strong style={{ fontSize: 24, letterSpacing: "-1px" }}>proposo<span style={{ color: "#b8874c" }}>.</span></strong><span style={{ marginLeft: 16, fontSize: 12, color: "#64748b" }}>INTERAKTIV DEMO</span></div>
+      <button style={btn} onClick={() => window.print()}>Skriv ut / Spara som PDF</button>
+    </header>
+    <div className="demo-columns" style={{ display: "grid", gridTemplateColumns: "350px minmax(0,1fr)", gap: 26, maxWidth: 1480, margin: "0 auto", padding: "26px 22px" }}>
+      <aside className="demo-no-print" style={{ minWidth: 0 }}>
+        <div style={card}>
+          <h1 style={{ fontSize: 23, fontWeight: 800, marginBottom: 7 }}>Testa Proposo</h1>
+          <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>Allt är påhittat. Den här demon fungerar utan konto, databas eller AI-krediter. Ändringar sparas inte.</p>
+        </div>
+        <div style={card}>
+          <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 18 }}>1. Ditt företag</h2>
+          <label style={label}>Företagsnamn</label><input style={demoField} value={company} onChange={e => setCompany(e.target.value)} />
+          <div style={{ display: "flex", gap: 15, marginTop: 16 }}>
+            <label style={{ flex: 1, fontSize: 12, fontWeight: 700 }}>Primärfärg<input type="color" value={primary} onChange={e => setPrimary(e.target.value)} style={{ display: "block", width: "100%", height: 43, marginTop: 6 }} /></label>
+            <label style={{ flex: 1, fontSize: 12, fontWeight: 700 }}>Accentfärg<input type="color" value={accent} onChange={e => setAccent(e.target.value)} style={{ display: "block", width: "100%", height: 43, marginTop: 6 }} /></label>
+          </div>
+          <label style={{ ...label, marginTop: 15 }}>Typsnitt</label>
+          <select style={demoField} value={font} onChange={e => setFont(e.target.value)}>
+            <option value="Georgia, serif">Klassisk serif</option><option value="Arial, sans-serif">Modern sans-serif</option><option value="Trebuchet MS, sans-serif">Mjuk sans-serif</option>
+            {customFont && <option value="DemoBrandFont, Georgia, serif">Uppladdat typsnitt</option>}
+          </select>
+          <label style={{ ...label, marginTop: 16 }}>Egen logotyp (PNG/JPG/WebP)</label><input type="file" accept=".png,.jpg,.jpeg,.webp" onChange={e => upload(e.target.files?.[0], "logo")} />
+          <label style={{ ...label, marginTop: 16 }}>Egen omslagsbild</label><input type="file" accept=".png,.jpg,.jpeg,.webp" onChange={e => upload(e.target.files?.[0], "photo")} />
+          <label style={{ ...label, marginTop: 16 }}>Eget typsnitt (WOFF2/TTF/OTF)</label><input type="file" accept=".woff2,.ttf,.otf" onChange={e => upload(e.target.files?.[0], "font")} />
+        </div>
+        <div style={card}>
+          <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 15 }}>2. Kundmöte</h2>
+          <label style={label}>Kundens namn</label><input style={demoField} value={client} onChange={e => setClient(e.target.value)} />
+          <label style={{ ...label, marginTop: 15 }}>Mötesanteckningar</label>
+          <textarea style={{ ...demoField, minHeight: 235, resize: "vertical", fontSize: 12, lineHeight: 1.6 }} value={notes} onChange={e => setNotes(e.target.value)} />
+          <button style={{ ...btn, width: "100%", marginTop: 12 }} onClick={makeDemo}>Skapa demo-offert</button>
+          <p style={{ fontSize: 11, color: "#64748b", marginTop: 10 }}>Demo-genereringen använder fördefinierade regler, inte AI. Inga anteckningar skickas till en AI-tjänst.</p>
+        </div>
+      </aside>
+      <section style={{ minWidth: 0 }}>
+        <div className="demo-no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 10 }}>
+          <div><strong>Offertförhandsvisning</strong><p style={{ fontSize: 12, color: "#64748b" }}>Klicka i rubriker och texter för att redigera.</p></div>
+          <button onClick={() => setShowPreview(v => !v)} style={{ background: "white", border: "1px solid #ddd", borderRadius: 8, padding: 9 }}>{showPreview ? "Dölj" : "Visa"} offert</button>
+        </div>
+        {generated && showPreview && <div className="demo-paper" style={{ width: "100%", maxWidth: 820, margin: "0 auto", boxShadow: "0 12px 35px #17212d17", borderRadius: 4, overflow: "hidden", background: "white", fontFamily: font }}>
+          <section className="demo-page" style={{ background: primary, color: "white", minHeight: 910, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "8%" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              {logo ? <img src={logo} alt="Logotyp" style={{ maxWidth: 185, maxHeight: 72, objectFit: "contain" }} /> : <strong style={{ fontSize: 24 }}>{company}</strong>}
+              <span style={{ fontSize: 11, letterSpacing: 2, color: accent }}>KUNDFÖRSLAG / 2026</span>
+            </div>
+            {photo && <img src={photo} alt="Företagets omslagsbild" style={{ width: "100%", height: 290, objectFit: "cover", marginTop: 35, borderRadius: 4 }} />}
+            <div style={{ paddingTop: 50, paddingBottom: 70 }}>
+              <p style={{ fontSize: 12, letterSpacing: 2, color: accent, marginBottom: 25 }}>FRAMTAGET FÖR {client.toUpperCase()}</p>
+              <textarea className="demo-edit" rows={3} value={title} onChange={e => setTitle(e.target.value)} style={{ fontSize: "clamp(30px, 4.2vw, 55px)", fontWeight: 700, lineHeight: 1.12, resize: "none", minHeight: 170 }} />
+              <p style={{ fontSize: 18, marginTop: 18, opacity: 0.8 }}>Ett förslag från {company}</p>
+            </div>
+            <div style={{ borderTop: "1px solid #ffffff55", paddingTop: 18, display: "flex", justifyContent: "space-between", fontSize: 12 }}><span>{company}</span><span>01 / 02</span></div>
+          </section>
+          <section className="demo-page" style={{ background: "white", minHeight: 910, padding: "9%", display: "flex", flexDirection: "column" }}>
+            <div style={{ fontSize: 12, letterSpacing: 2, color: primary, marginBottom: 30 }}>VÅRT FÖRSLAG</div>
+            <h2 style={{ fontSize: 36, lineHeight: 1.2, marginBottom: 25, color: primary }}>Tillsammans skapar vi nästa steg.</h2>
+            <textarea className="demo-edit" value={intro} onChange={e => setIntro(e.target.value)} rows={4} style={{ fontSize: 17, lineHeight: 1.7, resize: "vertical", color: "#38424b" }} />
+            <h3 style={{ fontSize: 23, marginTop: 45, marginBottom: 20, color: primary }}>Omfattning och investering</h3>
+            <div>{items.map((item, i) => <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 14, borderTop: "1px solid #e5e7eb", padding: "19px 0" }}>
+              <div><input className="demo-edit" value={item.name} onChange={e => updateItem(i, "name", e.target.value)} style={{ fontWeight: 700, fontSize: 16 }} /><input className="demo-edit" value={item.description} onChange={e => updateItem(i, "description", e.target.value)} style={{ fontSize: 13, color: "#64748b" }} /></div>
+              <input className="demo-edit" aria-label="Pris" value={item.price} onChange={e => updateItem(i, "price", e.target.value)} style={{ width: 155, fontWeight: 700, textAlign: "right", color: primary }} />
+            </div>)}</div>
+            <div className="demo-no-print" style={{ marginTop: 8 }}><button onClick={() => setItems(current => [...current, { name: "Ny tjänst", description: "Beskrivning", price: "0 kr" }])} style={{ border: "1px solid #ddd", background: "white", borderRadius: 8, padding: 8 }}>+ Lägg till rad</button></div>
+            <p style={{ fontSize: 12, color: "#64748b", marginTop: 25 }}>Priser exklusive moms. Omfattning och villkor fastställs i slutlig överenskommelse.</p>
+            <div style={{ marginTop: "auto", borderTop: "2px solid", borderColor: accent, paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 12 }}><strong>{company}</strong><span>02 / 02</span></div>
+          </section>
+        </div>}
+      </section>
+    </div>
+  </main>;
+}

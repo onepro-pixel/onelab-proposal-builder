@@ -9,9 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/_authenticated/installningar")({
   head: () => ({
     meta: [
-      { title: "Inställningar – OneLab Förslag" },
+      { title: "Inställningar – Offertverktyget" },
       { name: "description", content: "Tjänstebeskrivningar och standardtexter för AI:n." },
-      { property: "og:title", content: "Inställningar – OneLab Förslag" },
+      { property: "og:title", content: "Inställningar – Offertverktyget" },
       { property: "og:description", content: "Tjänstebeskrivningar och standardtexter för AI:n." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -59,8 +59,8 @@ function Settings() {
       <div className="flex items-end justify-between">
         <div>
           <p className="eyebrow mb-3">Inställningar</p>
-          <h1 className="display text-5xl">Det AI:n vet om OneLab</h1>
-          <p className="mt-4 max-w-xl text-muted-foreground">Ändringar gäller för alla säljare och nya förslag direkt.</p>
+          <h1 className="display text-5xl">Det AI:n vet om ditt företag</h1>
+          <p className="mt-4 max-w-xl text-muted-foreground">Inställningarna styr hur nya förslag skrivs. Företagsseparering behöver införas innan tjänsten öppnas för flera organisationer.</p>
         </div>
         <Button onClick={save} disabled={busy} className="h-11 rounded-full px-6">
           Spara

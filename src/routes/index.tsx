@@ -12,6 +12,6 @@ export const Route = createFileRoute("/")({
     ],
   }),
   beforeLoad: () => {
-    throw redirect({ to: "/forslag" });
+    throw redirect({ to: "/demo" });
   },
 });

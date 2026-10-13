@@ -119,9 +119,9 @@ function AuthPage() {
             </>
           )}
         </div>
-        <span className="text-xs text-muted-foreground">Internt verktyg · OneLab</span>
+        <span className="text-xs text-muted-foreground">Proposo · Kundförslag på ditt sätt</span>
       </div>
-      <img src={cover} alt="" width={1920} height={1280} className="hidden h-screen w-full object-cover object-[65%_center] lg:block" />
+      <div className="hidden bg-slate-900 p-16 text-white lg:flex lg:items-center"><div><p className="mb-5 text-sm uppercase tracking-widest text-slate-400">Proposo</p><h2 className="text-5xl font-semibold leading-tight">Från möte till förslag.</h2><p className="mt-6 text-lg text-slate-300">Skapa kundanpassade offerter med ditt eget varumärke.</p><a href="/demo" className="mt-8 inline-block rounded-full bg-white px-6 py-3 font-medium text-slate-900">Testa demon</a></div></div>
     </div>
   );
 }

@@ -265,6 +265,7 @@ function Demo() {
             <div style={{ fontSize: 12, letterSpacing: 2, color: primary, marginBottom: 30 }}>VÅRT FÖRSLAG</div>
             <h2 style={{ fontSize: visualStyle === "editorial" ? 46 : visualStyle === "minimal" ? 42 : 32, lineHeight: 1.14, marginBottom: 25, color: primary }}>{visualStyle === "corporate" ? "Ett tydligt upplägg för er verksamhet." : visualStyle === "minimal" ? "Ert nästa steg." : "Tillsammans skapar vi nästa steg."}</h2>
             <div><div className="demo-print-text" style={{ fontSize: 17, lineHeight: 1.7, color: "#38424b" }}>{intro}</div><textarea className="demo-edit" value={intro} onChange={e => setIntro(e.target.value)} rows={1} style={{ fontSize: 17, lineHeight: 1.7, resize: "none", color: "#38424b", minHeight: 0 }} /></div>
+            {photo && <div className="proposal-module" style={{ marginTop: 30, marginBottom: 30 }}><img src={photo} alt="Företagets bildmaterial" style={{ display: "block", width: "100%", height: 290, objectFit: "cover", borderRadius: 14 }} /></div>}
             {analysis && analysis.designPlan.showNeeds && <div className="proposal-module" style={{ marginTop: 34, padding: 25, background: visualStyle === "minimal" ? "#fff" : "#f3f6f4", borderLeft: visualStyle === "minimal" ? "0" : "5px solid " + accent, borderTop: visualStyle === "minimal" ? "2px solid " + primary : undefined }}>
               <div className="proposal-kicker" style={{ color: primary, marginBottom: 10 }}>Vår förståelse av ert behov</div>
               <p style={{ fontSize: 16, lineHeight: 1.65, color: "#334155", margin: 0 }}>{analysis.customerSituation}</p>
@@ -275,6 +276,9 @@ function Demo() {
               <h3 style={{ fontSize: 26, color: primary, margin: "10px 0 15px" }}>En lösning utifrån era förutsättningar</h3>
               <div className="proposal-grid" style={{ gridTemplateColumns: analysis.designPlan.layout === "detailed" ? "1fr" : undefined }}>{analysis.relevantServices.slice(0,analysis.designPlan.layout === "compact" ? 2 : 4).map((service,i) => <div key={i} style={{ padding: 18, border: visualStyle === "minimal" ? "0" : "1px solid #dbe3de", borderBottom: visualStyle === "minimal" ? "1px solid #dbe3de" : undefined, background: visualStyle === "corporate" ? "#fff" : undefined, borderRadius: 4, minHeight: 90 }}><div style={{ color: accent, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>0{i+1}</div><div style={{ fontSize: 15, fontWeight: 700, color: primary, lineHeight: 1.4 }}>{service}</div></div>)}</div>
             </div>}
+          </section>
+          <section className="demo-page" style={{ background: "#fff", padding: "9% 10%", display: "block", fontFamily: font }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e4e4e4", paddingBottom: 18, marginBottom: 32, fontSize: 12 }}><strong>{company}</strong><span style={{ color: "#808080", letterSpacing: 1.5 }}>OFFERT / INVESTERING</span></div>
             <div className="proposal-module" style={{ marginTop: analysis?.designPlan.layout === "compact" ? 20 : 38, marginBottom: 18 }}>
               <div className="proposal-kicker" style={{ color: primary }}>Omfattning och investering</div>
               <h3 style={{ fontSize: 26, marginTop: 8, color: primary }}>Det här ingår i vårt förslag</h3>
@@ -290,7 +294,7 @@ function Demo() {
               <h3 style={{ fontSize: 25, margin: "12px 0 17px", color: "white" }}>Så går vi vidare</h3>
               {analysis.nextSteps.slice(0, 4).map((step,i) => <div key={i} style={{ display: "flex", gap: 14, borderTop: "1px solid #ffffff35", padding: "13px 0", fontSize: 14, lineHeight: 1.5 }}><strong style={{ color: accent }}>0{i+1}</strong><span>{step}</span></div>)}
             </div>}
-            <div className="proposal-module" style={{ marginTop: 35, borderTop: "2px solid", borderColor: accent, paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 12 }}><strong>{company}</strong><span>PROPOSO</span></div>
+            <div className="proposal-module" style={{ marginTop: 35, borderTop: "2px solid", borderColor: accent, paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 12 }}><strong>{company}</strong><span>PROPOSO</span></div><strong>{company}</strong><span>PROPOSO</span></div>
           </section>
         </div>}
       </section>

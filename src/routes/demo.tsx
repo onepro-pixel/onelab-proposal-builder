@@ -294,7 +294,7 @@ function Demo() {
               <h3 style={{ fontSize: 25, margin: "12px 0 17px", color: "white" }}>Så går vi vidare</h3>
               {analysis.nextSteps.slice(0, 4).map((step,i) => <div key={i} style={{ display: "flex", gap: 14, borderTop: "1px solid #ffffff35", padding: "13px 0", fontSize: 14, lineHeight: 1.5 }}><strong style={{ color: accent }}>0{i+1}</strong><span>{step}</span></div>)}
             </div>}
-            <div className="proposal-module" style={{ marginTop: 35, borderTop: "2px solid", borderColor: accent, paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 12 }}><strong>{company}</strong><span>PROPOSO</span></div><strong>{company}</strong><span>PROPOSO</span></div>
+            <div className="proposal-module" style={{ marginTop: 35, borderTop: "2px solid", borderColor: accent, paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 12 }}><strong>{company}</strong><span>PROPOSO</span></div>
           </section>
         </div>}
       </section>

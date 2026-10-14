@@ -40,6 +40,7 @@ function Demo() {
   const [demoCode, setDemoCode] = useState("");
   const [analysis, setAnalysis] = useState<MeetingAnalysis | null>(null);
   const [analysisApproved, setAnalysisApproved] = useState(false);
+  const [approvedPricing, setApprovedPricing] = useState("");
   const [analysisBusy, setAnalysisBusy] = useState(false);
   const analyzeAI = useServerFn(analyzeDemoMeeting);
   const [aiBusy, setAiBusy] = useState(false);
@@ -85,6 +86,7 @@ function Demo() {
       const result = await analyzeAI({ data: { demoCode: demoCode.trim(), company, client, notes, services } });
       setAnalysis(result);
       setAnalysisApproved(false);
+      setApprovedPricing("");
     } catch (error) {
       setAiError(error instanceof Error ? error.message : "Kunde inte analysera mötet.");
     } finally { setAnalysisBusy(false); }
@@ -96,7 +98,7 @@ function Demo() {
       if (!demoCode.trim()) throw new Error("Ange testkoden för att använda AI.");
       if (!analysis || !analysisApproved) throw new Error("Analysera mötet och godkänn underlaget innan du skapar offerten.");
       if (demoCode.trim().length > 128) throw new Error("Testkoden är för lång. Klistra bara in själva testkoden, inte hela meddelandet.");
-      const result = await generateAI({ data: { demoCode: demoCode.trim(), company, client, notes, services } });
+      const result = await generateAI({ data: { demoCode: demoCode.trim(), company, client, notes, services, approvedPricing } });
       setTitle(result.title);
       setIntro(result.intro);
       setItems(result.items);
@@ -122,7 +124,7 @@ function Demo() {
     setGenerated(true);
     setShowPreview(true);
   }
-  useEffect(() => { setAnalysis(null); setAnalysisApproved(false); }, [notes, services, company, client]);
+  useEffect(() => { setAnalysis(null); setAnalysisApproved(false); setApprovedPricing(""); }, [notes, services, company, client]);
   const updateItem = (i: number, key: keyof Item, value: string) => setItems(current => current.map((item, j) => j === i ? { ...item, [key]: value } : item));
   const label: CSSProperties = { display: "block", fontSize: 12, fontWeight: 700, marginBottom: 6, color: "#475569" };
   const card: CSSProperties = { background: "white", border: "1px solid #e3e7ee", borderRadius: 16, padding: 22, marginBottom: 16 };
@@ -216,9 +218,12 @@ function Demo() {
               ["Kundens behov", analysis.needs],
               ["Relevanta tjänster", analysis.relevantServices],
               ["Bekräftade uppgifter", analysis.confirmedFacts],
+              ["Prisuppgifter i mötet", analysis.pricingEvidence],
               ["Att kontrollera före utskick", analysis.uncertainties],
               ["Nästa steg", analysis.nextSteps],
             ] as [string, string[]][]).map(([heading, entries]) => <div key={heading} style={{ marginTop: 10 }}><strong>{heading}</strong><ul style={{ paddingLeft: 18, marginTop: 4 }}>{entries.map((entry, index) => <li key={index}>{entry}</li>)}</ul></div>)}
+            <label style={label}>Kundspecifikt pris eller rabatt – bekräfta här</label>
+            <textarea style={demoField} rows={3} maxLength={4000} value={approvedPricing} onChange={e => { setApprovedPricing(e.target.value); setAnalysisApproved(false); }} placeholder="Exempel: Bas 2 000 kr/person, överenskommet i mötet. Standardpris 2 690 kr gäller inte denna kund." />
             <label style={{ display: "flex", gap: 9, alignItems: "flex-start", marginTop: 12, cursor: "pointer" }}><input type="checkbox" checked={analysisApproved} onChange={e => setAnalysisApproved(e.target.checked)} style={{ marginTop: 3 }} /><span>Jag har granskat uppgifterna och vill skapa ett utkast. Oklara uppgifter ska inte presenteras som bekräftade.</span></label>
           </div>}
           <button disabled={aiBusy || !analysisApproved} style={{ ...btn, width: "100%", marginTop: 12, opacity: aiBusy || !analysisApproved ? 0.5 : 1 }} onClick={() => void makeDemo()}>{aiBusy ? "AI skriver offerten…" : "2. Skapa offertutkast med AI"}</button>

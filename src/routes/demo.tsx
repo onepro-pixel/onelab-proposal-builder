@@ -147,7 +147,12 @@ function Demo() {
       textarea.demo-edit { field-sizing: content; height: auto; min-height: 2.5em; overflow: hidden; overflow-wrap: anywhere; white-space: pre-wrap; }
       .demo-paper { overflow: visible !important; }
       .demo-page { box-sizing: border-box; overflow-wrap: anywhere; }
-      .demo-item { break-inside: avoid; page-break-inside: avoid; }
+.demo-item { break-inside: avoid; page-break-inside: avoid; }
+      .proposal-module { break-inside: avoid; page-break-inside: avoid; }
+      .proposal-kicker { font: 700 11px Inter, ui-sans-serif, sans-serif; letter-spacing: 2px; text-transform: uppercase; }
+      .proposal-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+      @media (max-width: 680px) { .proposal-grid { grid-template-columns: 1fr; } }
+      @media print { .proposal-module { break-inside: avoid !important; } .proposal-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; } }
       @media print {
         .demo-page { min-height: 0 !important; height: auto !important; break-after: auto !important; }
         .demo-page:first-child { min-height: 297mm !important; break-after: page !important; }
@@ -251,18 +256,36 @@ function Demo() {
             </div>
             <div style={{ borderTop: "1px solid #ffffff55", paddingTop: 18, display: "flex", justifyContent: "space-between", fontSize: 12 }}><span>{company}</span><span>OFFERT</span></div>
           </section>
-          <section className="demo-page" style={{ background: "white", minHeight: 910, padding: "9%", display: "flex", flexDirection: "column" }}>
+          <section className="demo-page" style={{ background: "white", padding: "9%", display: "block" }}>
             <div style={{ fontSize: 12, letterSpacing: 2, color: primary, marginBottom: 30 }}>VÅRT FÖRSLAG</div>
             <h2 style={{ fontSize: 36, lineHeight: 1.2, marginBottom: 25, color: primary }}>Tillsammans skapar vi nästa steg.</h2>
             <div><div className="demo-print-text" style={{ fontSize: 17, lineHeight: 1.7, color: "#38424b" }}>{intro}</div><textarea className="demo-edit" value={intro} onChange={e => setIntro(e.target.value)} rows={1} style={{ fontSize: 17, lineHeight: 1.7, resize: "none", color: "#38424b", minHeight: 0 }} /></div>
-            <h3 style={{ fontSize: 23, marginTop: 45, marginBottom: 20, color: primary }}>Omfattning och investering</h3>
-            <div>{items.map((item, i) => <div key={i} className="demo-item" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(100px, 155px)", gap: 14, borderTop: "1px solid #e5e7eb", padding: "19px 0" }}>
+            {analysis && <div className="proposal-module" style={{ marginTop: 34, padding: 25, background: "#f3f6f4", borderLeft: "5px solid " + accent }}>
+              <div className="proposal-kicker" style={{ color: primary, marginBottom: 10 }}>Vår förståelse av ert behov</div>
+              <p style={{ fontSize: 16, lineHeight: 1.65, color: "#334155", margin: 0 }}>{analysis.customerSituation}</p>
+              {analysis.needs.length > 0 && <div className="proposal-grid" style={{ marginTop: 18 }}>{analysis.needs.slice(0, 4).map((need, i) => <div key={i} style={{ borderTop: "1px solid #ccd7d1", paddingTop: 11, fontSize: 14, lineHeight: 1.5 }}><span style={{ color: primary, fontWeight: 700, marginRight: 8 }}>0{i+1}</span>{need}</div>)}</div>}
+            </div>}
+            {analysis && analysis.relevantServices.length > 0 && <div className="proposal-module" style={{ marginTop: 35 }}>
+              <div className="proposal-kicker" style={{ color: primary }}>Rekommenderat upplägg</div>
+              <h3 style={{ fontSize: 26, color: primary, margin: "10px 0 15px" }}>En lösning utifrån era förutsättningar</h3>
+              <div className="proposal-grid">{analysis.relevantServices.slice(0,4).map((service,i) => <div key={i} style={{ padding: 18, border: "1px solid #dbe3de", borderRadius: 4, minHeight: 90 }}><div style={{ color: accent, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>0{i+1}</div><div style={{ fontSize: 15, fontWeight: 700, color: primary, lineHeight: 1.4 }}>{service}</div></div>)}</div>
+            </div>}
+            <div className="proposal-module" style={{ marginTop: 38, marginBottom: 18 }}>
+              <div className="proposal-kicker" style={{ color: primary }}>Omfattning och investering</div>
+              <h3 style={{ fontSize: 26, marginTop: 8, color: primary }}>Det här ingår i vårt förslag</h3>
+            </div>
+            <div>{items.map((item, i) => <div key={i} className="demo-item" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(110px, 180px)", gap: 22, border: "1px solid #e0e8e2", borderLeft: "4px solid " + accent, borderRadius: 4, padding: "20px", marginBottom: 12, background: "#fff" }}>
               <div style={{ minWidth: 0 }}><div className="demo-print-text" style={{ fontWeight: 700, fontSize: 16 }}>{item.name}</div><div className="demo-print-text" style={{ fontSize: 13, color: "#64748b", marginTop: 5 }}>{item.description}</div><textarea className="demo-edit" rows={1} value={item.name} onChange={e => updateItem(i, "name", e.target.value)} style={{ fontWeight: 700, fontSize: 16, resize: "none" }} /><textarea className="demo-edit" rows={1} value={item.description} onChange={e => updateItem(i, "description", e.target.value)} style={{ fontSize: 13, color: "#64748b", resize: "none" }} /></div>
               <div><div className="demo-print-text" style={{ fontWeight: 700, textAlign: "right", color: primary }}>{item.price}</div><textarea className="demo-edit" rows={1} aria-label="Pris" value={item.price} onChange={e => updateItem(i, "price", e.target.value)} style={{ width: "100%", fontWeight: 700, textAlign: "right", color: primary, resize: "none" }} /></div>
             </div>)}</div>
             <div className="demo-no-print" style={{ marginTop: 8 }}><button onClick={() => setItems(current => [...current, { name: "Ny tjänst", description: "Beskrivning", price: "0 kr" }])} style={{ border: "1px solid #ddd", background: "white", borderRadius: 8, padding: 8 }}>+ Lägg till rad</button></div>
-            <p style={{ fontSize: 12, color: "#64748b", marginTop: 25 }}>Priser exklusive moms. Omfattning och villkor fastställs i slutlig överenskommelse.</p>
-            <div style={{ marginTop: "auto", borderTop: "2px solid", borderColor: accent, paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 12 }}><strong>{company}</strong><span>PROPOSO</span></div>
+            <p style={{ fontSize: 12, color: "#64748b", marginTop: 25 }}>Priser exklusive moms om inget annat anges. Bekräfta omfattning och villkor före utskick.</p>
+            {analysis && analysis.nextSteps.length > 0 && <div className="proposal-module" style={{ marginTop: 36, padding: 25, background: primary, color: "white" }}>
+              <div className="proposal-kicker" style={{ color: accent }}>Nästa steg</div>
+              <h3 style={{ fontSize: 25, margin: "12px 0 17px", color: "white" }}>Så går vi vidare</h3>
+              {analysis.nextSteps.slice(0, 4).map((step,i) => <div key={i} style={{ display: "flex", gap: 14, borderTop: "1px solid #ffffff35", padding: "13px 0", fontSize: 14, lineHeight: 1.5 }}><strong style={{ color: accent }}>0{i+1}</strong><span>{step}</span></div>)}
+            </div>}
+            <div className="proposal-module" style={{ marginTop: 35, borderTop: "2px solid", borderColor: accent, paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 12 }}><strong>{company}</strong><span>PROPOSO</span></div>
           </section>
         </div>}
       </section>

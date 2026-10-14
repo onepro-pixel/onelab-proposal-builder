@@ -253,8 +253,8 @@ function Demo() {
             </div>
             {visualStyle === "corporate" && <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12, marginTop: 36, height: 245 }}><div style={{ background: primary, padding: 25, color: "white", display: "flex", alignItems: "flex-end", fontSize: 24, fontWeight: 700 }}>Strategiskt förslag<br />för {client}</div><div style={{ background: accent, display: "flex", alignItems: "flex-end", padding: 22, color: primary, fontSize: 45, fontWeight: 800 }}>01.</div></div>}
             {visualStyle === "editorial" && (photo ? <img src={photo} alt="Företagets omslagsbild" style={{ width: "110%", marginLeft: "-5%", height: 380, objectFit: "cover", marginTop: 32 }} /> : <div style={{ width: "110%", marginLeft: "-5%", height: 300, marginTop: 32, background: `linear-gradient(135deg, ${accent} 0%, ${primary} 80%)`, borderTop: "1px solid #ffffff70", borderBottom: "1px solid #ffffff70" }} />)}
-            {visualStyle === "minimal" && <div style={{ width: 70, height: 7, background: accent, marginTop: 90 }} />}
-            {visualStyle === "corporate" && photo && <img src={photo} alt="Företagets bild" style={{ width: "100%", height: 120, objectFit: "cover", marginTop: 14 }} />}
+            {visualStyle === "minimal" && (photo ? <img src={photo} alt="Omslagsbild" style={{ width: "100%", height: 350, objectFit: "cover", borderRadius: 16, marginTop: 36 }} /> : <div style={{ width: 70, height: 7, background: accent, marginTop: 90 }} />)}
+            {visualStyle === "corporate" && photo && <img src={photo} alt="Företagets bild" style={{ width: "100%", height: 290, objectFit: "cover", borderRadius: 16, marginTop: 22 }} />}
             <div style={{ paddingTop: visualStyle === "minimal" ? 90 : 45, paddingBottom: visualStyle === "minimal" ? 135 : 65, maxWidth: visualStyle === "minimal" ? 620 : undefined }}>
               <p style={{ fontSize: 12, letterSpacing: 2, color: visualStyle === "minimal" ? primary : accent, marginBottom: 25 }}>FRAMTAGET FÖR {client.toUpperCase()}</p>
               <div><div className="demo-print-text" style={{ fontSize: 38, fontWeight: 700, lineHeight: 1.14 }}>{title}</div><textarea className="demo-edit" rows={1} value={title} onChange={e => setTitle(e.target.value)} style={{ fontSize: visualStyle === "editorial" ? "clamp(40px, 5vw, 68px)" : visualStyle === "minimal" ? "clamp(38px, 4.8vw, 64px)" : "clamp(30px, 4vw, 52px)", fontWeight: 700, lineHeight: 1.12, resize: "none", minHeight: 0, overflowWrap: "anywhere" }} /></div>
@@ -290,12 +290,12 @@ function Demo() {
             </div>)}</div>
             <div className="demo-no-print" style={{ marginTop: 8 }}><button onClick={() => setItems(current => [...current, { name: "Ny tjänst", description: "Beskrivning", price: "0 kr" }])} style={{ border: "1px solid #ddd", background: "white", borderRadius: 8, padding: 8 }}>+ Lägg till rad</button></div>
             <p style={{ fontSize: 12, color: "#64748b", marginTop: 25 }}>Priser exklusive moms om inget annat anges. Bekräfta omfattning och villkor före utskick.</p>
-            {analysis && analysis.designPlan.showNextSteps && analysis.nextSteps.length > 0 && <div className="proposal-module" style={{ marginTop: 36, padding: 25, background: primary, color: "white" }}>
-              <div className="proposal-kicker" style={{ color: accent }}>Nästa steg</div>
-              <h3 style={{ fontSize: 25, margin: "12px 0 17px", color: "white" }}>Så går vi vidare</h3>
-              {analysis.nextSteps.slice(0, 4).map((step,i) => <div key={i} style={{ display: "flex", gap: 14, borderTop: "1px solid #ffffff35", padding: "13px 0", fontSize: 14, lineHeight: 1.5 }}><strong style={{ color: accent }}>0{i+1}</strong><span>{step}</span></div>)}
+            {analysis && analysis.designPlan.showNextSteps && analysis.nextSteps.length > 0 && <div className="proposal-module" style={{ marginTop: 24, padding: "18px 20px", background: "#f4f6f5", color: primary }}>
+              <div className="proposal-kicker" style={{ color: primary }}>Nästa steg</div>
+              <h3 style={{ fontSize: 21, margin: "8px 0 10px", color: primary }}>Så går vi vidare</h3>
+              {analysis.nextSteps.slice(0, 4).map((step,i) => <div key={i} style={{ display: "flex", gap: 14, borderTop: "1px solid #dce3df", padding: "8px 0", fontSize: 13, lineHeight: 1.5 }}><strong style={{ color: primary }}>0{i+1}</strong><span>{step}</span></div>)}
             </div>}
-            <div className="proposal-module" style={{ marginTop: 35, borderTop: "2px solid", borderColor: accent, paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 12 }}><strong>{company}</strong><span>PROPOSO</span></div>
+            <div className="proposal-module" style={{ marginTop: 20, borderTop: "1px solid", borderColor: "#dce3df", paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 12 }}><strong>{company}</strong><span>PROPOSO</span></div>
           </section>
         </div>}
       </section>

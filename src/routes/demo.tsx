@@ -2,10 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type CSSProperties } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateDemoProposal } from "@/lib/demo-ai.functions";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/demo")({
-  head: () => ({ meta: [{ title: "Proposo – Interaktiv demo" }, { name: "description", content: "Testa offertredigering eller generera ett riktigt AI-förslag med inloggning." }] }),
+  head: () => ({ meta: [{ title: "Proposo – Interaktiv demo" }, { name: "description", content: "Testa offertredigering eller generera ett riktigt AI-förslag med testkod." }] }),
   component: Demo,
 });
 
@@ -38,6 +37,7 @@ function Demo() {
   const [client, setClient] = useState("Berg & Dal Fastigheter");
   const [notes, setNotes] = useState(exampleNotes);
   const [services, setServices] = useState(exampleServices);
+  const [demoCode, setDemoCode] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState("");
   const generateAI = useServerFn(generateDemoProposal);
@@ -77,9 +77,8 @@ function Demo() {
     setAiBusy(true);
     setAiError("");
     try {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) throw new Error("Logga in för att använda riktig AI. Den färdiga exempelofferten kan testas utan konto.");
-      const result = await generateAI({ data: { company, client, notes, services } });
+      if (!demoCode.trim()) throw new Error("Ange testkoden för att använda AI.");
+      const result = await generateAI({ data: { demoCode, company, client, notes, services } });
       setTitle(result.title);
       setIntro(result.intro);
       setItems(result.items);
@@ -133,9 +132,12 @@ function Demo() {
       <aside className="demo-no-print" style={{ minWidth: 0 }}>
         <div style={card}>
           <h1 style={{ fontSize: 23, fontWeight: 800, marginBottom: 7 }}>Testa Proposo</h1>
-          <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>Exempelföretaget är påhittat. AI-generering använder riktig AI och kräver inloggning och tillgängliga AI-krediter. Du kan redigera exempelofferten utan konto. Ändringar sparas inte.</p>
+          <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>Exempelföretaget är påhittat. AI-generering använder riktig AI och en privat testkod. Du kan redigera exempelofferten utan konto. Ändringar sparas inte.</p>
         </div>
         <div style={card}>
+          <label style={label}>Privat testkod för AI</label>
+          <input style={demoField} type="password" autoComplete="off" placeholder="Ange testkod" value={demoCode} onChange={e => setDemoCode(e.target.value)} />
+          <p style={{ fontSize: 12, color: "#64748b", marginTop: 8 }}>Koden används bara för AI-generering. Ingen inloggning behövs.</p>
           <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 18 }}>1. Ditt företag</h2>
           <label style={label}>Företagsnamn</label><input style={demoField} value={company} onChange={e => setCompany(e.target.value)} />
           <div style={{ display: "flex", gap: 15, marginTop: 16 }}>

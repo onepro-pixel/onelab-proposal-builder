@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type CSSProperties } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { generateDemoProposal } from "@/lib/demo-ai.functions";
+import { analyzeDemoMeeting, generateDemoProposal, type MeetingAnalysis } from "@/lib/demo-ai.functions";
 
 export const Route = createFileRoute("/demo")({
   head: () => ({ meta: [{ title: "Proposo – Interaktiv demo" }, { name: "description", content: "Testa offertredigering eller generera ett riktigt AI-förslag med testkod." }] }),
@@ -38,6 +38,10 @@ function Demo() {
   const [notes, setNotes] = useState(exampleNotes);
   const [services, setServices] = useState(exampleServices);
   const [demoCode, setDemoCode] = useState("");
+  const [analysis, setAnalysis] = useState<MeetingAnalysis | null>(null);
+  const [analysisApproved, setAnalysisApproved] = useState(false);
+  const [analysisBusy, setAnalysisBusy] = useState(false);
+  const analyzeAI = useServerFn(analyzeDemoMeeting);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState("");
   const generateAI = useServerFn(generateDemoProposal);
@@ -73,11 +77,24 @@ function Demo() {
     else if (kind === "photo") setPhoto(url);
     else { setCustomFont(url); setFont("DemoBrandFont, Georgia, serif"); }
   }
+  async function analyzeMeeting() {
+    setAnalysisBusy(true);
+    setAiError("");
+    try {
+      if (!demoCode.trim()) throw new Error("Ange testkoden för att analysera mötet.");
+      const result = await analyzeAI({ data: { demoCode: demoCode.trim(), company, client, notes, services } });
+      setAnalysis(result);
+      setAnalysisApproved(false);
+    } catch (error) {
+      setAiError(error instanceof Error ? error.message : "Kunde inte analysera mötet.");
+    } finally { setAnalysisBusy(false); }
+  }
   async function makeDemo() {
     setAiBusy(true);
     setAiError("");
     try {
       if (!demoCode.trim()) throw new Error("Ange testkoden för att använda AI.");
+      if (!analysis || !analysisApproved) throw new Error("Analysera mötet och godkänn underlaget innan du skapar offerten.");
       if (demoCode.trim().length > 128) throw new Error("Testkoden är för lång. Klistra bara in själva testkoden, inte hela meddelandet.");
       const result = await generateAI({ data: { demoCode: demoCode.trim(), company, client, notes, services } });
       setTitle(result.title);
@@ -105,6 +122,7 @@ function Demo() {
     setGenerated(true);
     setShowPreview(true);
   }
+  useEffect(() => { setAnalysis(null); setAnalysisApproved(false); }, [notes, services, company, client]);
   const updateItem = (i: number, key: keyof Item, value: string) => setItems(current => current.map((item, j) => j === i ? { ...item, [key]: value } : item));
   const label: CSSProperties = { display: "block", fontSize: 12, fontWeight: 700, marginBottom: 6, color: "#475569" };
   const card: CSSProperties = { background: "white", border: "1px solid #e3e7ee", borderRadius: 16, padding: 22, marginBottom: 16 };
@@ -187,7 +205,23 @@ function Demo() {
           <textarea style={{ ...demoField, minHeight: 235, resize: "vertical", fontSize: 12, lineHeight: 1.6 }} value={notes} onChange={e => setNotes(e.target.value)} />
           <label style={{ ...label, marginTop: 15 }}>Ditt företags tjänster och priser (AI-underlag)</label>
           <textarea style={{ ...demoField, minHeight: 160, fontSize: 12, lineHeight: 1.6 }} value={services} onChange={e => setServices(e.target.value)} />
-          <button disabled={aiBusy} style={{ ...btn, width: "100%", marginTop: 12, opacity: aiBusy ? 0.6 : 1 }} onClick={() => void makeDemo()}>{aiBusy ? "AI skriver offerten…" : "Skapa offert med AI"}</button>
+          <button disabled={analysisBusy} style={{ ...btn, width: "100%", marginTop: 12, opacity: analysisBusy ? 0.6 : 1 }} onClick={() => void analyzeMeeting()}>{analysisBusy ? "Analyserar mötet…" : "1. Analysera kundmötet med AI"}</button>
+          {analysis && <div style={{ marginTop: 14, padding: 15, border: "1px solid #b7c9c4", background: "#f3faf7", borderRadius: 10, fontSize: 13, lineHeight: 1.5 }}>
+            <strong style={{ fontSize: 15 }}>Granska AI-analysen</strong>
+            <p style={{ marginTop: 8 }}>{analysis.customerSituation}</p>
+            <p><strong>Rekommenderat material:</strong> {analysis.recommendedFormat}</p>
+            <p><strong>Köpstadium:</strong> {analysis.buyingStage}</p>
+            <p><strong>Prisstatus:</strong> {analysis.priceStatus}</p>
+            {([
+              ["Kundens behov", analysis.needs],
+              ["Relevanta tjänster", analysis.relevantServices],
+              ["Bekräftade uppgifter", analysis.confirmedFacts],
+              ["Att kontrollera före utskick", analysis.uncertainties],
+              ["Nästa steg", analysis.nextSteps],
+            ] as [string, string[]][]).map(([heading, entries]) => <div key={heading} style={{ marginTop: 10 }}><strong>{heading}</strong><ul style={{ paddingLeft: 18, marginTop: 4 }}>{entries.map((entry, index) => <li key={index}>{entry}</li>)}</ul></div>)}
+            <label style={{ display: "flex", gap: 9, alignItems: "flex-start", marginTop: 12, cursor: "pointer" }}><input type="checkbox" checked={analysisApproved} onChange={e => setAnalysisApproved(e.target.checked)} style={{ marginTop: 3 }} /><span>Jag har granskat uppgifterna och vill skapa ett utkast. Oklara uppgifter ska inte presenteras som bekräftade.</span></label>
+          </div>}
+          <button disabled={aiBusy || !analysisApproved} style={{ ...btn, width: "100%", marginTop: 12, opacity: aiBusy || !analysisApproved ? 0.5 : 1 }} onClick={() => void makeDemo()}>{aiBusy ? "AI skriver offerten…" : "2. Skapa offertutkast med AI"}</button>
           {aiError && <p role="alert" style={{ fontSize: 12, color: "#b42318", marginTop: 10 }}>{aiError}</p>}
           <button style={{ width: "100%", marginTop: 12, padding: 10, border: "1px solid #d9dce3", borderRadius: 9, background: "white" }} onClick={makeRuleBasedDemo}>Visa exempel utan AI</button>
           <p style={{ fontSize: 11, color: "#64748b", marginTop: 10 }}>AI läser mötesanteckningarna och företagets tjänsteunderlag. Kontrollera alltid innehåll och priser före utskick.</p>

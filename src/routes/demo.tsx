@@ -122,6 +122,17 @@ function Demo() {
       .demo-paper input, .demo-paper textarea { font: inherit; }
       .demo-edit { border: 1px dashed transparent; padding: 3px; width: 100%; background: transparent; color: inherit; }
       .demo-edit:focus { outline: 1px dashed #9aa7b7; }
+      textarea.demo-edit { field-sizing: content; height: auto; min-height: 2.5em; overflow: hidden; overflow-wrap: anywhere; white-space: pre-wrap; }
+      .demo-paper { overflow: visible !important; }
+      .demo-page { box-sizing: border-box; overflow-wrap: anywhere; }
+      .demo-item { break-inside: avoid; page-break-inside: avoid; }
+      @media print {
+        .demo-page { min-height: 0 !important; height: auto !important; break-after: auto !important; }
+        .demo-page:first-child { min-height: 297mm !important; break-after: page !important; }
+        .demo-paper { overflow: visible !important; }
+        .demo-edit { border: none !important; }
+        textarea.demo-edit { resize: none !important; }
+      }
       @media (max-width: 960px) { .demo-columns { grid-template-columns: 1fr !important; } }
     `}</style>
     <header className="demo-no-print" style={{ background: "#fff", borderBottom: "1px solid #e3e7ee", padding: "16px 5%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
@@ -171,7 +182,7 @@ function Demo() {
           <div><strong>Offertförhandsvisning</strong><p style={{ fontSize: 12, color: "#64748b" }}>Klicka i rubriker och texter för att redigera.</p></div>
           <button onClick={() => setShowPreview(v => !v)} style={{ background: "white", border: "1px solid #ddd", borderRadius: 8, padding: 9 }}>{showPreview ? "Dölj" : "Visa"} offert</button>
         </div>
-        {generated && showPreview && <div className="demo-paper" style={{ width: "100%", maxWidth: 820, margin: "0 auto", boxShadow: "0 12px 35px #17212d17", borderRadius: 4, overflow: "hidden", background: "white", fontFamily: font }}>
+        {generated && showPreview && <div className="demo-paper" style={{ width: "100%", maxWidth: 820, margin: "0 auto", boxShadow: "0 12px 35px #17212d17", borderRadius: 4, overflow: "visible", background: "white", fontFamily: font }}>
           <section className="demo-page" style={{ background: primary, color: "white", minHeight: 910, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "8%" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               {logo ? <img src={logo} alt="Logotyp" style={{ maxWidth: 185, maxHeight: 72, objectFit: "contain" }} /> : <strong style={{ fontSize: 24 }}>{company}</strong>}
@@ -180,7 +191,7 @@ function Demo() {
             {photo && <img src={photo} alt="Företagets omslagsbild" style={{ width: "100%", height: 290, objectFit: "cover", marginTop: 35, borderRadius: 4 }} />}
             <div style={{ paddingTop: 50, paddingBottom: 70 }}>
               <p style={{ fontSize: 12, letterSpacing: 2, color: accent, marginBottom: 25 }}>FRAMTAGET FÖR {client.toUpperCase()}</p>
-              <textarea className="demo-edit" rows={3} value={title} onChange={e => setTitle(e.target.value)} style={{ fontSize: "clamp(30px, 4.2vw, 55px)", fontWeight: 700, lineHeight: 1.12, resize: "none", minHeight: 170 }} />
+              <textarea className="demo-edit" rows={1} value={title} onChange={e => setTitle(e.target.value)} style={{ fontSize: "clamp(30px, 4.2vw, 55px)", fontWeight: 700, lineHeight: 1.12, resize: "none", minHeight: 0, overflowWrap: "anywhere" }} />
               <p style={{ fontSize: 18, marginTop: 18, opacity: 0.8 }}>Ett förslag från {company}</p>
             </div>
             <div style={{ borderTop: "1px solid #ffffff55", paddingTop: 18, display: "flex", justifyContent: "space-between", fontSize: 12 }}><span>{company}</span><span>01 / 02</span></div>
@@ -188,11 +199,11 @@ function Demo() {
           <section className="demo-page" style={{ background: "white", minHeight: 910, padding: "9%", display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: 12, letterSpacing: 2, color: primary, marginBottom: 30 }}>VÅRT FÖRSLAG</div>
             <h2 style={{ fontSize: 36, lineHeight: 1.2, marginBottom: 25, color: primary }}>Tillsammans skapar vi nästa steg.</h2>
-            <textarea className="demo-edit" value={intro} onChange={e => setIntro(e.target.value)} rows={4} style={{ fontSize: 17, lineHeight: 1.7, resize: "vertical", color: "#38424b" }} />
+            <textarea className="demo-edit" value={intro} onChange={e => setIntro(e.target.value)} rows={1} style={{ fontSize: 17, lineHeight: 1.7, resize: "none", color: "#38424b", minHeight: 0 }} />
             <h3 style={{ fontSize: 23, marginTop: 45, marginBottom: 20, color: primary }}>Omfattning och investering</h3>
-            <div>{items.map((item, i) => <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 14, borderTop: "1px solid #e5e7eb", padding: "19px 0" }}>
-              <div><input className="demo-edit" value={item.name} onChange={e => updateItem(i, "name", e.target.value)} style={{ fontWeight: 700, fontSize: 16 }} /><input className="demo-edit" value={item.description} onChange={e => updateItem(i, "description", e.target.value)} style={{ fontSize: 13, color: "#64748b" }} /></div>
-              <input className="demo-edit" aria-label="Pris" value={item.price} onChange={e => updateItem(i, "price", e.target.value)} style={{ width: 155, fontWeight: 700, textAlign: "right", color: primary }} />
+            <div>{items.map((item, i) => <div key={i} className="demo-item" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(100px, 155px)", gap: 14, borderTop: "1px solid #e5e7eb", padding: "19px 0" }}>
+              <div style={{ minWidth: 0 }}><textarea className="demo-edit" rows={1} value={item.name} onChange={e => updateItem(i, "name", e.target.value)} style={{ fontWeight: 700, fontSize: 16, resize: "none" }} /><textarea className="demo-edit" rows={1} value={item.description} onChange={e => updateItem(i, "description", e.target.value)} style={{ fontSize: 13, color: "#64748b", resize: "none" }} /></div>
+              <textarea className="demo-edit" rows={1} aria-label="Pris" value={item.price} onChange={e => updateItem(i, "price", e.target.value)} style={{ width: "100%", fontWeight: 700, textAlign: "right", color: primary, resize: "none" }} />
             </div>)}</div>
             <div className="demo-no-print" style={{ marginTop: 8 }}><button onClick={() => setItems(current => [...current, { name: "Ny tjänst", description: "Beskrivning", price: "0 kr" }])} style={{ border: "1px solid #ddd", background: "white", borderRadius: 8, padding: 8 }}>+ Lägg till rad</button></div>
             <p style={{ fontSize: 12, color: "#64748b", marginTop: 25 }}>Priser exklusive moms. Omfattning och villkor fastställs i slutlig överenskommelse.</p>

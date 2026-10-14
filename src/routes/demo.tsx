@@ -56,6 +56,7 @@ function Demo() {
   const [intro, setIntro] = useState("Vi föreslår en modern och lättskött webbplats som presenterar fastigheterna tydligt och gör det enkelt för besökare att ta kontakt.");
   const [items, setItems] = useState<Item[]>(initialItems);
   const [showPreview, setShowPreview] = useState(true);
+  const visualStyle = analysis?.designPlan.layout === "compact" ? "minimal" : analysis?.designPlan.layout === "detailed" ? "corporate" : "editorial";
   const [generated, setGenerated] = useState(true);
   useEffect(() => {
     return () => { [logo, photo, customFont].forEach(url => { if (url) URL.revokeObjectURL(url); }); };
@@ -244,24 +245,27 @@ function Demo() {
           <button onClick={() => setShowPreview(v => !v)} style={{ background: "white", border: "1px solid #ddd", borderRadius: 8, padding: 9 }}>{showPreview ? "Dölj" : "Visa"} offert</button>
         </div>
         {generated && showPreview && <div className="demo-paper" style={{ width: "100%", maxWidth: 820, margin: "0 auto", boxShadow: "0 12px 35px #17212d17", borderRadius: 4, overflow: "visible", background: "white", fontFamily: font }}>
-          <section className="demo-page" style={{ background: primary, color: "white", minHeight: 910, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "8%" }}>
+          <section className="demo-page" style={{ background: visualStyle === "minimal" ? "#ffffff" : visualStyle === "corporate" ? "#edf2f0" : primary, color: visualStyle === "editorial" ? "white" : primary, minHeight: 910, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: visualStyle === "minimal" ? "12% 10%" : "8%", position: "relative" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               {logo ? <img src={logo} alt="Logotyp" style={{ maxWidth: 185, maxHeight: 72, objectFit: "contain" }} /> : <strong style={{ fontSize: 24 }}>{company}</strong>}
-              <span style={{ fontSize: 11, letterSpacing: 2, color: accent }}>KUNDFÖRSLAG / 2026</span>
+              <span style={{ fontSize: 11, letterSpacing: 2, color: visualStyle === "minimal" ? primary : accent }}>KUNDFÖRSLAG / 2026</span>
             </div>
-            {photo && <img src={photo} alt="Företagets omslagsbild" style={{ width: "100%", height: 290, objectFit: "cover", marginTop: 35, borderRadius: 4 }} />}
-            <div style={{ paddingTop: 50, paddingBottom: 70 }}>
-              <p style={{ fontSize: 12, letterSpacing: 2, color: accent, marginBottom: 25 }}>FRAMTAGET FÖR {client.toUpperCase()}</p>
-              <div><div className="demo-print-text" style={{ fontSize: 38, fontWeight: 700, lineHeight: 1.14 }}>{title}</div><textarea className="demo-edit" rows={1} value={title} onChange={e => setTitle(e.target.value)} style={{ fontSize: "clamp(30px, 4.2vw, 55px)", fontWeight: 700, lineHeight: 1.12, resize: "none", minHeight: 0, overflowWrap: "anywhere" }} /></div>
+            {visualStyle === "corporate" && <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12, marginTop: 36, height: 245 }}><div style={{ background: primary, padding: 25, color: "white", display: "flex", alignItems: "flex-end", fontSize: 24, fontWeight: 700 }}>Strategiskt förslag<br />för {client}</div><div style={{ background: accent, display: "flex", alignItems: "flex-end", padding: 22, color: primary, fontSize: 45, fontWeight: 800 }}>01.</div></div>}
+            {visualStyle === "editorial" && (photo ? <img src={photo} alt="Företagets omslagsbild" style={{ width: "110%", marginLeft: "-5%", height: 380, objectFit: "cover", marginTop: 32 }} /> : <div style={{ width: "110%", marginLeft: "-5%", height: 300, marginTop: 32, background: `linear-gradient(135deg, ${accent} 0%, ${primary} 80%)`, borderTop: "1px solid #ffffff70", borderBottom: "1px solid #ffffff70" }} />)}
+            {visualStyle === "minimal" && <div style={{ width: 70, height: 7, background: accent, marginTop: 90 }} />}
+            {visualStyle === "corporate" && photo && <img src={photo} alt="Företagets bild" style={{ width: "100%", height: 120, objectFit: "cover", marginTop: 14 }} />}
+            <div style={{ paddingTop: visualStyle === "minimal" ? 90 : 45, paddingBottom: visualStyle === "minimal" ? 135 : 65, maxWidth: visualStyle === "minimal" ? 620 : undefined }}>
+              <p style={{ fontSize: 12, letterSpacing: 2, color: visualStyle === "minimal" ? primary : accent, marginBottom: 25 }}>FRAMTAGET FÖR {client.toUpperCase()}</p>
+              <div><div className="demo-print-text" style={{ fontSize: 38, fontWeight: 700, lineHeight: 1.14 }}>{title}</div><textarea className="demo-edit" rows={1} value={title} onChange={e => setTitle(e.target.value)} style={{ fontSize: visualStyle === "editorial" ? "clamp(40px, 5vw, 68px)" : visualStyle === "minimal" ? "clamp(38px, 4.8vw, 64px)" : "clamp(30px, 4vw, 52px)", fontWeight: 700, lineHeight: 1.12, resize: "none", minHeight: 0, overflowWrap: "anywhere" }} /></div>
               <p style={{ fontSize: 18, marginTop: 18, opacity: 0.8 }}>Ett förslag från {company}</p>
             </div>
-            <div style={{ borderTop: "1px solid #ffffff55", paddingTop: 18, display: "flex", justifyContent: "space-between", fontSize: 12 }}><span>{company}</span><span>OFFERT</span></div>
+            <div style={{ borderTop: visualStyle === "editorial" ? "1px solid #ffffff55" : "1px solid #93a69d", paddingTop: 18, display: "flex", justifyContent: "space-between", fontSize: 12 }}><span>{company}</span><span>OFFERT</span></div>
           </section>
-          <section className="demo-page" style={{ background: "white", padding: "9%", display: "block" }}>
+          <section className="demo-page" style={{ background: visualStyle === "corporate" ? "#f7f9f8" : "white", padding: visualStyle === "minimal" ? "12% 11%" : "9%", display: "block", fontFamily: visualStyle === "corporate" ? "Inter, ui-sans-serif, system-ui, sans-serif" : font }}>
             <div style={{ fontSize: 12, letterSpacing: 2, color: primary, marginBottom: 30 }}>VÅRT FÖRSLAG</div>
-            <h2 style={{ fontSize: 36, lineHeight: 1.2, marginBottom: 25, color: primary }}>Tillsammans skapar vi nästa steg.</h2>
+            <h2 style={{ fontSize: visualStyle === "editorial" ? 46 : visualStyle === "minimal" ? 42 : 32, lineHeight: 1.14, marginBottom: 25, color: primary }}>{visualStyle === "corporate" ? "Ett tydligt upplägg för er verksamhet." : visualStyle === "minimal" ? "Ert nästa steg." : "Tillsammans skapar vi nästa steg."}</h2>
             <div><div className="demo-print-text" style={{ fontSize: 17, lineHeight: 1.7, color: "#38424b" }}>{intro}</div><textarea className="demo-edit" value={intro} onChange={e => setIntro(e.target.value)} rows={1} style={{ fontSize: 17, lineHeight: 1.7, resize: "none", color: "#38424b", minHeight: 0 }} /></div>
-            {analysis && analysis.designPlan.showNeeds && <div className="proposal-module" style={{ marginTop: 34, padding: 25, background: "#f3f6f4", borderLeft: "5px solid " + accent }}>
+            {analysis && analysis.designPlan.showNeeds && <div className="proposal-module" style={{ marginTop: 34, padding: 25, background: visualStyle === "minimal" ? "#fff" : "#f3f6f4", borderLeft: visualStyle === "minimal" ? "0" : "5px solid " + accent, borderTop: visualStyle === "minimal" ? "2px solid " + primary : undefined }}>
               <div className="proposal-kicker" style={{ color: primary, marginBottom: 10 }}>Vår förståelse av ert behov</div>
               <p style={{ fontSize: 16, lineHeight: 1.65, color: "#334155", margin: 0 }}>{analysis.customerSituation}</p>
               {analysis.needs.length > 0 && <div className="proposal-grid" style={{ marginTop: 18 }}>{analysis.needs.slice(0, 4).map((need, i) => <div key={i} style={{ borderTop: "1px solid #ccd7d1", paddingTop: 11, fontSize: 14, lineHeight: 1.5 }}><span style={{ color: primary, fontWeight: 700, marginRight: 8 }}>0{i+1}</span>{need}</div>)}</div>}
@@ -269,13 +273,13 @@ function Demo() {
             {analysis && analysis.designPlan.showSolution && analysis.relevantServices.length > 0 && <div className="proposal-module" style={{ marginTop: 35 }}>
               <div className="proposal-kicker" style={{ color: primary }}>Rekommenderat upplägg</div>
               <h3 style={{ fontSize: 26, color: primary, margin: "10px 0 15px" }}>En lösning utifrån era förutsättningar</h3>
-              <div className="proposal-grid" style={{ gridTemplateColumns: analysis.designPlan.layout === "detailed" ? "1fr" : undefined }}>{analysis.relevantServices.slice(0,analysis.designPlan.layout === "compact" ? 2 : 4).map((service,i) => <div key={i} style={{ padding: 18, border: "1px solid #dbe3de", borderRadius: 4, minHeight: 90 }}><div style={{ color: accent, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>0{i+1}</div><div style={{ fontSize: 15, fontWeight: 700, color: primary, lineHeight: 1.4 }}>{service}</div></div>)}</div>
+              <div className="proposal-grid" style={{ gridTemplateColumns: analysis.designPlan.layout === "detailed" ? "1fr" : undefined }}>{analysis.relevantServices.slice(0,analysis.designPlan.layout === "compact" ? 2 : 4).map((service,i) => <div key={i} style={{ padding: 18, border: visualStyle === "minimal" ? "0" : "1px solid #dbe3de", borderBottom: visualStyle === "minimal" ? "1px solid #dbe3de" : undefined, background: visualStyle === "corporate" ? "#fff" : undefined, borderRadius: 4, minHeight: 90 }}><div style={{ color: accent, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>0{i+1}</div><div style={{ fontSize: 15, fontWeight: 700, color: primary, lineHeight: 1.4 }}>{service}</div></div>)}</div>
             </div>}
             <div className="proposal-module" style={{ marginTop: analysis?.designPlan.layout === "compact" ? 20 : 38, marginBottom: 18 }}>
               <div className="proposal-kicker" style={{ color: primary }}>Omfattning och investering</div>
               <h3 style={{ fontSize: 26, marginTop: 8, color: primary }}>Det här ingår i vårt förslag</h3>
             </div>
-            <div>{items.map((item, i) => <div key={i} className="demo-item" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(110px, 180px)", gap: 22, border: "1px solid #e0e8e2", borderLeft: "4px solid " + accent, borderRadius: 4, padding: "20px", marginBottom: 12, background: "#fff" }}>
+            <div>{items.map((item, i) => <div key={i} className="demo-item" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(110px, 180px)", gap: 22, border: visualStyle === "minimal" ? "0" : "1px solid #e0e8e2", borderBottom: visualStyle === "minimal" ? "1px solid #d6ded9" : undefined, borderLeft: visualStyle === "minimal" ? "0" : "4px solid " + accent, borderRadius: 4, padding: "20px", marginBottom: 12, background: "#fff" }}>
               <div style={{ minWidth: 0 }}><div className="demo-print-text" style={{ fontWeight: 700, fontSize: 16 }}>{item.name}</div><div className="demo-print-text" style={{ fontSize: 13, color: "#64748b", marginTop: 5 }}>{item.description}</div><textarea className="demo-edit" rows={1} value={item.name} onChange={e => updateItem(i, "name", e.target.value)} style={{ fontWeight: 700, fontSize: 16, resize: "none" }} /><textarea className="demo-edit" rows={1} value={item.description} onChange={e => updateItem(i, "description", e.target.value)} style={{ fontSize: 13, color: "#64748b", resize: "none" }} /></div>
               <div><div className="demo-print-text" style={{ fontWeight: 700, textAlign: "right", color: primary }}>{item.price}</div><textarea className="demo-edit" rows={1} aria-label="Pris" value={item.price} onChange={e => updateItem(i, "price", e.target.value)} style={{ width: "100%", fontWeight: 700, textAlign: "right", color: primary, resize: "none" }} /></div>
             </div>)}</div>

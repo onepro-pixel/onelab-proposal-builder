@@ -50,7 +50,8 @@ function Demo() {
   const [accent, setAccent] = useState("#c7a36b");
   const [font, setFont] = useState("Georgia, serif");
   const [logo, setLogo] = useState<string | null>(null);
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const photo = photos[0] ?? null;
   const [customFont, setCustomFont] = useState<string | null>(null);
   const [title, setTitle] = useState("En digital närvaro som växer med er");
   const [intro, setIntro] = useState("Vi föreslår en modern och lättskött webbplats som presenterar fastigheterna tydligt och gör det enkelt för besökare att ta kontakt.");
@@ -59,8 +60,8 @@ function Demo() {
   const visualStyle = analysis?.designPlan.layout === "compact" ? "minimal" : analysis?.designPlan.layout === "detailed" ? "corporate" : "editorial";
   const [generated, setGenerated] = useState(true);
   useEffect(() => {
-    return () => { [logo, photo, customFont].forEach(url => { if (url) URL.revokeObjectURL(url); }); };
-  }, [logo, photo, customFont]);
+    return () => { [logo, customFont, ...photos].forEach(url => { if (url) URL.revokeObjectURL(url); }); };
+  }, [logo, photos, customFont]);
   useEffect(() => {
     if (!customFont) return;
     const face = new FontFace("DemoBrandFont", `url("${customFont}")`);
@@ -76,7 +77,7 @@ function Demo() {
     }
     const url = URL.createObjectURL(file);
     if (kind === "logo") setLogo(url);
-    else if (kind === "photo") setPhoto(url);
+    else if (kind === "photo") setPhotos(current => [...current, url]);
     else { setCustomFont(url); setFont("DemoBrandFont, Georgia, serif"); }
   }
   async function analyzeMeeting() {
@@ -203,7 +204,7 @@ function Demo() {
             {customFont && <option value="DemoBrandFont, Georgia, serif">Uppladdat typsnitt</option>}
           </select>
           <label style={{ ...label, marginTop: 16 }}>Egen logotyp (PNG/JPG/WebP)</label><input type="file" accept=".png,.jpg,.jpeg,.webp" onChange={e => upload(e.target.files?.[0], "logo")} />
-          <label style={{ ...label, marginTop: 16 }}>Egen omslagsbild</label><input type="file" accept=".png,.jpg,.jpeg,.webp" onChange={e => upload(e.target.files?.[0], "photo")} />
+          <label style={{ ...label, marginTop: 16 }}>Bildbibliotek – välj flera bilder för omslag och innehåll</label><input type="file" multiple accept=".png,.jpg,.jpeg,.webp" onChange={e => { Array.from(e.target.files ?? []).forEach(file => upload(file, "photo")); e.target.value = ""; }} /><p style={{ fontSize: 12, color: "#64748b" }}>{photos.length} bilder valda. Första bilden används på omslaget, övriga placeras i förslaget. Bilder behöver laddas upp här för att komma med i PDF:en.</p>
           <label style={{ ...label, marginTop: 16 }}>Eget typsnitt (WOFF2/TTF/OTF)</label><input type="file" accept=".woff2,.ttf,.otf" onChange={e => upload(e.target.files?.[0], "font")} />
         </div>
         <div style={card}>
@@ -265,7 +266,7 @@ function Demo() {
             <div style={{ fontSize: 12, letterSpacing: 2, color: primary, marginBottom: 30 }}>VÅRT FÖRSLAG</div>
             <h2 style={{ fontSize: visualStyle === "editorial" ? 46 : visualStyle === "minimal" ? 42 : 32, lineHeight: 1.14, marginBottom: 25, color: primary }}>{visualStyle === "corporate" ? "Ett tydligt upplägg för er verksamhet." : visualStyle === "minimal" ? "Ert nästa steg." : "Tillsammans skapar vi nästa steg."}</h2>
             <div><div className="demo-print-text" style={{ fontSize: 17, lineHeight: 1.7, color: "#38424b" }}>{intro}</div><textarea className="demo-edit" value={intro} onChange={e => setIntro(e.target.value)} rows={1} style={{ fontSize: 17, lineHeight: 1.7, resize: "none", color: "#38424b", minHeight: 0 }} /></div>
-            {photo && <div className="proposal-module" style={{ marginTop: 30, marginBottom: 30 }}><img src={photo} alt="Företagets bildmaterial" style={{ display: "block", width: "100%", height: 290, objectFit: "cover", borderRadius: 14 }} /></div>}
+            {photos.length > 1 && <div className="proposal-module" style={{ marginTop: 30, marginBottom: 30, display: "grid", gridTemplateColumns: photos.length > 2 ? "1.5fr 1fr" : "1fr", gap: 12 }}>{photos.slice(1, 3).map((src, i) => <img key={i} src={src} alt={`Företagets bild ${i + 2}`} style={{ display: "block", width: "100%", height: 245, objectFit: "cover", borderRadius: 14 }} />)}</div>}
             {analysis && analysis.designPlan.showNeeds && <div className="proposal-module" style={{ marginTop: 34, padding: 25, background: visualStyle === "minimal" ? "#fff" : "#f3f6f4", borderLeft: visualStyle === "minimal" ? "0" : "5px solid " + accent, borderTop: visualStyle === "minimal" ? "2px solid " + primary : undefined }}>
               <div className="proposal-kicker" style={{ color: primary, marginBottom: 10 }}>Vår förståelse av ert behov</div>
               <p style={{ fontSize: 16, lineHeight: 1.65, color: "#334155", margin: 0 }}>{analysis.customerSituation}</p>

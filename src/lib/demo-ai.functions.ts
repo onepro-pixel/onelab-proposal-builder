@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const input = z.object({
+  demoCode: z.string().min(1).max(128),
   company: z.string().trim().min(1).max(120),
   client: z.string().trim().min(1).max(120),
   notes: z.string().trim().min(30).max(14000),
@@ -23,19 +24,26 @@ const schema = {
 export const generateDemoProposal = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => input.parse(data))
   .handler(async ({ data }) => {
-    // A public AI endpoint needs per-user rate limiting and abuse protection before deployment.
-    // The demo is intentionally gated to authenticated users until that protection exists.
+    // Private, code-protected demo. Never expose the server-side access code to the browser.
+    const { timingSafeEqual } = await import("node:crypto");
+    const expected = process.env["DEMO_ACCESS_CODE"];
+    if (!expected) throw new Error("Testläget är inte konfigurerat.");
+    const actualBytes = Buffer.from(data.demoCode);
+    const expectedBytes = Buffer.from(expected);
+    if (actualBytes.length !== expectedBytes.length || !timingSafeEqual(actualBytes, expectedBytes)) {
+      throw new Error("Fel testkod.");
+    }
+    // Best-effort local throttle. A durable distributed limiter is needed before public launch.
     const { getRequest } = await import("@tanstack/react-start/server");
-    const { createClient } = await import("@supabase/supabase-js");
-    const request = getRequest();
-    const bearer = request.headers.get("authorization");
-    if (!bearer?.startsWith("Bearer ")) throw new Error("Logga in för att generera med AI. Du kan fortfarande redigera exempelofferten utan konto.");
-    const url = process.env["SUPABASE_URL"];
-    const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
-    if (!url || !key) throw new Error("Inloggning är inte konfigurerad.");
-    const sb = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: auth, error } = await sb.auth.getUser(bearer.slice(7));
-    if (error || !auth.user) throw new Error("Du behöver logga in för att använda AI.");
+    const req = getRequest();
+    const address = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const state = globalThis as typeof globalThis & { __proposoDemoLimits?: Map<string, number[]> };
+    const limits = state.__proposoDemoLimits ??= new Map<string, number[]>();
+    const now = Date.now();
+    const recent = (limits.get(address) || []).filter(t => now - t < 600000);
+    if (recent.length >= 5) throw new Error("För många AI-försök. Vänta tio minuter.");
+    recent.push(now);
+    limits.set(address, recent);
     const { callAI } = await import("./proposal-ai.server");
     const system = `Du är en erfaren B2B-offertskribent. Skriv på svenska ett konkret, relevant, personligt och professionellt offertutkast. Säljaren är ${data.company}. Kunden är ${data.client}.
 FÖRETAGETS VERKLIGA TJÄNSTER OCH PRISER (enda tillåtna källan till tjänster och priser):

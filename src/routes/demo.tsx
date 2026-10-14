@@ -78,14 +78,16 @@ function Demo() {
     setAiError("");
     try {
       if (!demoCode.trim()) throw new Error("Ange testkoden för att använda AI.");
-      const result = await generateAI({ data: { demoCode, company, client, notes, services } });
+      if (demoCode.trim().length > 128) throw new Error("Testkoden är för lång. Klistra bara in själva testkoden, inte hela meddelandet.");
+      const result = await generateAI({ data: { demoCode: demoCode.trim(), company, client, notes, services } });
       setTitle(result.title);
       setIntro(result.intro);
       setItems(result.items);
       setGenerated(true);
       setShowPreview(true);
     } catch (error) {
-      setAiError(error instanceof Error ? error.message : "AI-genereringen misslyckades. Försök igen.");
+      const message = error instanceof Error ? error.message : "AI-genereringen misslyckades. Försök igen.";
+      setAiError(message.includes("demoCode") || message.includes("too_big") ? "Testkoden är för lång. Klistra bara in själva testkoden." : message);
     } finally { setAiBusy(false); }
   }
   function makeRuleBasedDemo() {
@@ -161,7 +163,7 @@ function Demo() {
         </div>
         <div style={card}>
           <label style={label}>Privat testkod för AI</label>
-          <input style={demoField} type="password" autoComplete="off" placeholder="Ange testkod" value={demoCode} onChange={e => setDemoCode(e.target.value)} />
+          <input style={demoField} type="password" autoComplete="off" maxLength={128} placeholder="Ange testkod" value={demoCode} onChange={e => setDemoCode(e.target.value)} />
           <p style={{ fontSize: 12, color: "#64748b", marginTop: 8 }}>Koden används bara för AI-generering. Ingen inloggning behövs.</p>
           <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 18 }}>1. Ditt företag</h2>
           <label style={label}>Företagsnamn</label><input style={demoField} value={company} onChange={e => setCompany(e.target.value)} />
@@ -186,7 +188,7 @@ function Demo() {
           <label style={{ ...label, marginTop: 15 }}>Ditt företags tjänster och priser (AI-underlag)</label>
           <textarea style={{ ...demoField, minHeight: 160, fontSize: 12, lineHeight: 1.6 }} value={services} onChange={e => setServices(e.target.value)} />
           <button disabled={aiBusy} style={{ ...btn, width: "100%", marginTop: 12, opacity: aiBusy ? 0.6 : 1 }} onClick={() => void makeDemo()}>{aiBusy ? "AI skriver offerten…" : "Skapa offert med AI"}</button>
-          {aiError && <p role="alert" style={{ fontSize: 12, color: "#b42318", marginTop: 10 }}>{aiError} <a href="/auth" style={{ textDecoration: "underline" }}>Logga in</a></p>}
+          {aiError && <p role="alert" style={{ fontSize: 12, color: "#b42318", marginTop: 10 }}>{aiError}</p>}
           <button style={{ width: "100%", marginTop: 12, padding: 10, border: "1px solid #d9dce3", borderRadius: 9, background: "white" }} onClick={makeRuleBasedDemo}>Visa exempel utan AI</button>
           <p style={{ fontSize: 11, color: "#64748b", marginTop: 10 }}>AI läser mötesanteckningarna och företagets tjänsteunderlag. Kontrollera alltid innehåll och priser före utskick.</p>
         </div>

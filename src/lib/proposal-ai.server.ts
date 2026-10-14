@@ -14,17 +14,18 @@ function strictSchema(value: unknown): unknown {
   return next;
 }
 
-async function callAI<T>(system: string, user: string, schema: unknown): Promise<T> {
-  const key = process.env["LOVABLE_API_KEY"];
-  if (!key) throw new Error("AI-tjänsten är inte konfigurerad.");
+export async function callAI<T>(system: string, user: string, schema: unknown): Promise<T> {
+  const directKey = process.env["OPENAI_API_KEY"];
+  const key = directKey || process.env["LOVABLE_API_KEY"];
+  if (!key) throw new Error("AI-tjänsten är inte konfigurerad. Lägg till OPENAI_API_KEY som serverhemlighet.");
   const request = getRequest();
   const run = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(request));
   const provider = createOpenAI({
-    baseURL: "https://ai.gateway.lovable.dev/v1", apiKey: key,
-    headers: { "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
+    ...(directKey ? {} : { baseURL: "https://ai.gateway.lovable.dev/v1", headers: { "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "vercel-ai-sdk" } }),
+    apiKey: key,
     fetch: async (input, init) => {
-      const response = await run.fetch(input, init);
-      response.headers.forEach((value, name) => {
+      const response = directKey ? await fetch(input, init) : await run.fetch(input, init);
+      if (!directKey) response.headers.forEach((value, name) => {
         if (name.toLowerCase().startsWith("x-lovable-aig-")) setResponseHeader(name, value);
       });
       if (!response.ok) {
@@ -37,13 +38,13 @@ async function callAI<T>(system: string, user: string, schema: unknown): Promise
   });
   let streamError: Error | null = null;
   const result = streamText({
-    model: provider.responses("openai/gpt-6-astra"), system,
+    model: provider.responses(directKey ? (process.env["OPENAI_MODEL"] || "gpt-4.1-mini") : "openai/gpt-6-astra"), system,
     messages: [{ role: "user", content: user }], maxRetries: 0,
     abortSignal: request.signal,
     onError: ({ error }) => {
       streamError = error instanceof Error ? error : new Error(String(error));
     },
-    providerOptions: { openai: {
+    providerOptions: directKey ? { openai: { store: false } } : { openai: {
       forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto",
       store: false, include: ["reasoning.encrypted_content"],
     } },

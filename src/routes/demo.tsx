@@ -219,6 +219,7 @@ function Demo() {
             <p><strong>Rekommenderat material:</strong> {analysis.recommendedFormat}</p>
             <p><strong>Köpstadium:</strong> {analysis.buyingStage}</p>
             <p><strong>Prisstatus:</strong> {analysis.priceStatus}</p>
+            <p><strong>AI-vald offertdesign:</strong> {{compact:"Kompakt",editorial:"Redaktionell",detailed:"Detaljerad"}[analysis.designPlan.layout]} – {analysis.designPlan.rationale}</p>
             {([
               ["Kundens behov", analysis.needs],
               ["Relevanta tjänster", analysis.relevantServices],
@@ -260,17 +261,17 @@ function Demo() {
             <div style={{ fontSize: 12, letterSpacing: 2, color: primary, marginBottom: 30 }}>VÅRT FÖRSLAG</div>
             <h2 style={{ fontSize: 36, lineHeight: 1.2, marginBottom: 25, color: primary }}>Tillsammans skapar vi nästa steg.</h2>
             <div><div className="demo-print-text" style={{ fontSize: 17, lineHeight: 1.7, color: "#38424b" }}>{intro}</div><textarea className="demo-edit" value={intro} onChange={e => setIntro(e.target.value)} rows={1} style={{ fontSize: 17, lineHeight: 1.7, resize: "none", color: "#38424b", minHeight: 0 }} /></div>
-            {analysis && <div className="proposal-module" style={{ marginTop: 34, padding: 25, background: "#f3f6f4", borderLeft: "5px solid " + accent }}>
+            {analysis && analysis.designPlan.showNeeds && <div className="proposal-module" style={{ marginTop: 34, padding: 25, background: "#f3f6f4", borderLeft: "5px solid " + accent }}>
               <div className="proposal-kicker" style={{ color: primary, marginBottom: 10 }}>Vår förståelse av ert behov</div>
               <p style={{ fontSize: 16, lineHeight: 1.65, color: "#334155", margin: 0 }}>{analysis.customerSituation}</p>
               {analysis.needs.length > 0 && <div className="proposal-grid" style={{ marginTop: 18 }}>{analysis.needs.slice(0, 4).map((need, i) => <div key={i} style={{ borderTop: "1px solid #ccd7d1", paddingTop: 11, fontSize: 14, lineHeight: 1.5 }}><span style={{ color: primary, fontWeight: 700, marginRight: 8 }}>0{i+1}</span>{need}</div>)}</div>}
             </div>}
-            {analysis && analysis.relevantServices.length > 0 && <div className="proposal-module" style={{ marginTop: 35 }}>
+            {analysis && analysis.designPlan.showSolution && analysis.relevantServices.length > 0 && <div className="proposal-module" style={{ marginTop: 35 }}>
               <div className="proposal-kicker" style={{ color: primary }}>Rekommenderat upplägg</div>
               <h3 style={{ fontSize: 26, color: primary, margin: "10px 0 15px" }}>En lösning utifrån era förutsättningar</h3>
-              <div className="proposal-grid">{analysis.relevantServices.slice(0,4).map((service,i) => <div key={i} style={{ padding: 18, border: "1px solid #dbe3de", borderRadius: 4, minHeight: 90 }}><div style={{ color: accent, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>0{i+1}</div><div style={{ fontSize: 15, fontWeight: 700, color: primary, lineHeight: 1.4 }}>{service}</div></div>)}</div>
+              <div className="proposal-grid" style={{ gridTemplateColumns: analysis.designPlan.layout === "detailed" ? "1fr" : undefined }}>{analysis.relevantServices.slice(0,analysis.designPlan.layout === "compact" ? 2 : 4).map((service,i) => <div key={i} style={{ padding: 18, border: "1px solid #dbe3de", borderRadius: 4, minHeight: 90 }}><div style={{ color: accent, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>0{i+1}</div><div style={{ fontSize: 15, fontWeight: 700, color: primary, lineHeight: 1.4 }}>{service}</div></div>)}</div>
             </div>}
-            <div className="proposal-module" style={{ marginTop: 38, marginBottom: 18 }}>
+            <div className="proposal-module" style={{ marginTop: analysis?.designPlan.layout === "compact" ? 20 : 38, marginBottom: 18 }}>
               <div className="proposal-kicker" style={{ color: primary }}>Omfattning och investering</div>
               <h3 style={{ fontSize: 26, marginTop: 8, color: primary }}>Det här ingår i vårt förslag</h3>
             </div>
@@ -280,7 +281,7 @@ function Demo() {
             </div>)}</div>
             <div className="demo-no-print" style={{ marginTop: 8 }}><button onClick={() => setItems(current => [...current, { name: "Ny tjänst", description: "Beskrivning", price: "0 kr" }])} style={{ border: "1px solid #ddd", background: "white", borderRadius: 8, padding: 8 }}>+ Lägg till rad</button></div>
             <p style={{ fontSize: 12, color: "#64748b", marginTop: 25 }}>Priser exklusive moms om inget annat anges. Bekräfta omfattning och villkor före utskick.</p>
-            {analysis && analysis.nextSteps.length > 0 && <div className="proposal-module" style={{ marginTop: 36, padding: 25, background: primary, color: "white" }}>
+            {analysis && analysis.designPlan.showNextSteps && analysis.nextSteps.length > 0 && <div className="proposal-module" style={{ marginTop: 36, padding: 25, background: primary, color: "white" }}>
               <div className="proposal-kicker" style={{ color: accent }}>Nästa steg</div>
               <h3 style={{ fontSize: 25, margin: "12px 0 17px", color: "white" }}>Så går vi vidare</h3>
               {analysis.nextSteps.slice(0, 4).map((step,i) => <div key={i} style={{ display: "flex", gap: 14, borderTop: "1px solid #ffffff35", padding: "13px 0", fontSize: 14, lineHeight: 1.5 }}><strong style={{ color: accent }}>0{i+1}</strong><span>{step}</span></div>)}

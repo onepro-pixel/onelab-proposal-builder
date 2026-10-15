@@ -51,6 +51,7 @@ function OfferEditor() {
   const [meetingNotes, setMeetingNotes] = useState("");
   const [generating, setGenerating] = useState(false);
   const [generationError, setGenerationError] = useState("");
+  const [catalogPrices, setCatalogPrices] = useState<{ name: string; price_sek: number | null; unit: string }[]>([]);
   const [notesPreview, setNotesPreview] = useState<{ introduction: string; scope: string; pricing_notes: string } | null>(null);
   const [saveState, setSaveState] = useState<"saved" | "pending" | "saving" | "error">("saved");
   const lastSaved = useRef("");
@@ -69,12 +70,15 @@ function OfferEditor() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) { navigate({ to: "/auth", replace: true }); return; }
       const { data, error: loadError } = await supabase.from("proposals")
-        .select("id, owner_id, title, customer_name, status, content")
+        .select("id, owner_id, organization_id, title, customer_name, status, content")
         .eq("id", offerId).maybeSingle();
       if (!active) return;
       if (loadError) { setError(loadError.message); setLoading(false); return; }
       if (!data) { setError("Offerten finns inte eller så saknar du behörighet."); setLoading(false); return; }
-      const offer = data as Offer;
+      const offer = data as Offer & { organization_id: string };
+      const { data: products } = await supabase.from("organization_products").select("name,price_sek,unit").eq("organization_id", offer.organization_id).eq("is_active", true).order("name").limit(100);
+      if (!active) return;
+      setCatalogPrices((products ?? []) as { name: string; price_sek: number | null; unit: string }[]);
       originalContent.current = offer.content ?? {};
       const initial = toDraft(offer);
       lastSaved.current = JSON.stringify(initial);
@@ -273,7 +277,16 @@ function OfferEditor() {
           <p><strong>Inledning:</strong> {notesPreview.introduction || "Saknas"}</p>
           <p><strong>Omfattning:</strong> {notesPreview.scope || "Saknas"}</p>
           <p><strong>Priser:</strong> {notesPreview.pricing_notes || "Inga uttryckliga prisuppgifter hittades"}</p>
-          <p className="text-xs text-muted-foreground">Endast tomma offertfält fylls i. Befintlig text skrivs inte över.</p>
+          <p className="text-xs text-muted-foreground">Endast tomma offertfält fylls i. Befintlig text skrivs inte över. Kontrollera att alla belopp och enheter stämmer.</p>
+          <div className="rounded-md border bg-background p-3"><p className="font-medium">Prisgranskning mot företagets bibliotek</p>
+            {!catalogPrices.length ? <p className="mt-1 text-xs text-muted-foreground">Inga aktiva katalogpriser finns. Kontrollera priser manuellt.</p> :
+              <div className="mt-2 space-y-1">{catalogPrices.filter((product) => {
+                const name = product.name.toLocaleLowerCase("sv-SE");
+                return meetingNotes.toLocaleLowerCase("sv-SE").includes(name) || notesPreview.scope.toLocaleLowerCase("sv-SE").includes(name) || notesPreview.pricing_notes.toLocaleLowerCase("sv-SE").includes(name);
+              }).map((product) => <p key={product.name} className="text-xs"><strong>{product.name}:</strong> {product.price_sek === null ? "Inget katalogpris" : `${Number(product.price_sek).toLocaleString("sv-SE")} kr / ${product.unit}`}</p>)}
+                <p className="text-xs text-muted-foreground">Katalogpriser visas som jämförelse. Priser från mötet kan avvika och måste granskas.</p>
+              </div>}
+          </div>
           <button type="button" onClick={applyNotes} className="rounded-md bg-primary px-3 py-2 text-primary-foreground">Använd i offerten</button>
         </div>}
       </section>}

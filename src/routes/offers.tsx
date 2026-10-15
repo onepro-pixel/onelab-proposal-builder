@@ -117,9 +117,14 @@ function OffersDashboard() {
         {offers.length === 0 ? <p className="text-muted-foreground">Inga offerter ännu.</p> :
           offers.map((offer) => <article key={offer.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
             <div><h3 className="font-medium">{offer.title}</h3><p className="text-sm text-muted-foreground">{offer.customer_name}</p></div>
-            <div className="text-right text-sm">
+            <div className="flex items-center gap-5">
+              <Link to="/offers/$offerId" params={{ offerId: offer.id }} className="text-sm font-medium underline">
+                {offer.owner_id === userId ? "Redigera" : "Visa"}
+              </Link>
+              <div className="text-right text-sm">
               <p>{offer.status === "completed" ? "Färdig" : "Utkast"}</p>
               <p className="text-muted-foreground">{new Date(offer.updated_at).toLocaleDateString("sv-SE")}</p>
+              </div>
             </div>
           </article>)}
       </section>

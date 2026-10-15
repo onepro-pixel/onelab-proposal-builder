@@ -70,10 +70,13 @@ function OffersDashboard() {
     if (!selected || !userId || !customer.trim() || busy) return;
     setBusy(true);
     setError("");
+    const { data: branding, error: brandingError } = await supabase.from("organization_branding" as never).select("display_name, logo_url, theme").eq("organization_id", selected).maybeSingle();
+    if (brandingError) { setError(brandingError.message); setBusy(false); return; }
+    const defaults = branding ? { sender_name: (branding as { display_name: string }).display_name, logo_url: (branding as { logo_url: string }).logo_url, theme: (branding as { theme: string }).theme } : {};
     const { error: insertError } = await supabase.from("proposals").insert({
       organization_id: selected, owner_id: userId,
       customer_name: customer.trim(), title: title.trim() || "Ny offert",
-      status: "draft", content: {},
+      status: "draft", content: defaults,
     });
     if (insertError) setError(insertError.message);
     else { setCustomer(""); setTitle(""); await refresh(selected); }

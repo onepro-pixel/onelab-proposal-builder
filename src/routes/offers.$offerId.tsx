@@ -15,7 +15,9 @@ type Offer = {
   status: "draft" | "completed";
   content: (Record<string, unknown> & { introduction?: string; scope?: string; pricing_notes?: string }) | null;
 };
+type ContentBlock = { id: string; heading: string; body: string };
 type Draft = {
+  blocks: ContentBlock[];
   title: string;
   customer_name: string;
   introduction: string;
@@ -28,6 +30,7 @@ const toDraft = (offer: Offer): Draft => ({
   introduction: offer.content?.introduction ?? "",
   scope: offer.content?.scope ?? "",
   pricing_notes: offer.content?.pricing_notes ?? "",
+  blocks: Array.isArray(offer.content?.blocks) ? (offer.content.blocks as ContentBlock[]).filter((b) => b && typeof b.id === "string" && typeof b.heading === "string" && typeof b.body === "string") : [],
 });
 
 function OfferEditor() {
@@ -94,6 +97,7 @@ function OfferEditor() {
           introduction: payload.introduction,
           scope: payload.scope,
           pricing_notes: payload.pricing_notes,
+          blocks: payload.blocks,
         },
       }).eq("id", offerId).eq("owner_id", ownerRef.current).select("id").maybeSingle();
       if (saveError || !data) {
@@ -145,7 +149,24 @@ function OfferEditor() {
     document.getElementById(`offer-field-${field}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  function change(field: keyof Draft, value: string) {
+  function addBlock() {
+    setDraft((current) => current ? { ...current, blocks: [...current.blocks, { id: crypto.randomUUID(), heading: "Nytt avsnitt", body: "" }] } : current);
+  }
+
+  function updateBlock(id: string, field: "heading" | "body", value: string) {
+    setDraft((current) => current ? { ...current, blocks: current.blocks.map((block) => block.id === id ? { ...block, [field]: value } : block) } : current);
+  }
+
+  function moveBlock(index: number, offset: number) {
+    setDraft((current) => { if (!current || index + offset < 0 || index + offset >= current.blocks.length) return current;
+      const blocks = [...current.blocks]; [blocks[index], blocks[index + offset]] = [blocks[index + offset], blocks[index]]; return { ...current, blocks }; });
+  }
+
+  function removeBlock(id: string) {
+    setDraft((current) => current ? { ...current, blocks: current.blocks.filter((block) => block.id !== id) } : current);
+  }
+
+  function change(field: "title" | "customer_name" | "introduction" | "scope" | "pricing_notes", value: string) {
     setDraft((current) => current ? { ...current, [field]: value } : current);
   }
 
@@ -180,6 +201,18 @@ function OfferEditor() {
         <label key={key} className="block space-y-2"><span className="text-sm font-medium">{label}</span>
           <textarea id={`offer-field-${key}`} disabled={!editable} rows={6} value={draft[key]} onChange={(e) => change(key, e.target.value)}
             className="w-full resize-y rounded-md border bg-background p-3 disabled:opacity-70" /><span className="block text-right text-xs text-muted-foreground">{draft[key].trim() ? draft[key].trim().split(/\s+/).length : 0} ord</span></label>)}
+      <div className="space-y-4 border-t pt-5">
+        <div className="flex items-center justify-between gap-3"><div><h2 className="font-semibold">Egna innehållsblock</h2><p className="text-xs text-muted-foreground">Lägg till och ordna avsnitt i offerten.</p></div><button type="button" disabled={!editable} onClick={addBlock} className="rounded-md border px-3 py-2 text-sm disabled:opacity-50">+ Lägg till block</button></div>
+        {draft.blocks.map((block, index) => <section key={block.id} className="space-y-3 rounded-lg border p-4">
+          <div className="flex items-center justify-between gap-2"><span className="text-xs text-muted-foreground">Block {index + 1}</span><div className="flex gap-2">
+            <button type="button" disabled={!editable || index === 0} onClick={() => moveBlock(index, -1)} className="rounded border px-2 py-1 text-xs disabled:opacity-30" aria-label="Flytta upp">↑</button>
+            <button type="button" disabled={!editable || index === draft.blocks.length - 1} onClick={() => moveBlock(index, 1)} className="rounded border px-2 py-1 text-xs disabled:opacity-30" aria-label="Flytta ned">↓</button>
+            <button type="button" disabled={!editable} onClick={() => removeBlock(block.id)} className="rounded border px-2 py-1 text-xs text-destructive disabled:opacity-30">Ta bort</button>
+          </div></div>
+          <label className="block space-y-1"><span className="text-xs font-medium">Rubrik</span><input disabled={!editable} value={block.heading} maxLength={120} onChange={(e) => updateBlock(block.id, "heading", e.target.value)} className="w-full rounded-md border bg-background p-2" /></label>
+          <label className="block space-y-1"><span className="text-xs font-medium">Text</span><textarea disabled={!editable} value={block.body} rows={4} onChange={(e) => updateBlock(block.id, "body", e.target.value)} className="w-full resize-y rounded-md border bg-background p-2" /></label>
+        </section>)}
+      </div>
     </div><ProposalPreview draft={draft} onEdit={focusSection} /></div>}
   </main>;
 }
@@ -200,6 +233,7 @@ function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "int
           <section><h4 className="font-semibold">Priser och villkor</h4><button type="button" onClick={() => onEdit("pricing_notes")} className="mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2">{draft.pricing_notes || "Ange priser och villkor. Klicka för att redigera."}</button></section>
         </div>
       </div>
+      {draft.blocks.length > 0 && <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-5">{draft.blocks.map((block) => <section key={block.id} className="min-w-0"><h4 className="break-words text-xs font-semibold">{block.heading || "Avsnitt"}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed">{block.body || "Skriv innehåll i blocket."}</p></section>)}</div>}
     </div>
     <p className="text-xs text-muted-foreground">Liveförhandsvisning. PDF-export och sidbrytning tillkommer senare.</p>
   </section>;

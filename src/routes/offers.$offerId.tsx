@@ -140,6 +140,11 @@ function OfferEditor() {
   }
 
 
+  function focusSection(field: "introduction" | "scope" | "pricing_notes") {
+    document.getElementById(`offer-field-${field}`)?.focus();
+    document.getElementById(`offer-field-${field}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   function change(field: keyof Draft, value: string) {
     setDraft((current) => current ? { ...current, [field]: value } : current);
   }
@@ -160,7 +165,7 @@ function OfferEditor() {
       <p className="mt-2 text-sm text-muted-foreground">Ändringar sparas automatiskt när du slutar skriva.</p>
     </div>
     {error && <p role="alert" className="rounded-md border p-3 text-sm text-destructive">{error}</p>}
-    {draft && <div className="grid gap-8 lg:grid-cols-2"><div className="space-y-5">
+    {draft && <div className="grid gap-8 lg:grid-cols-2"><div className="space-y-5"><nav aria-label="Offertens avsnitt" className="flex flex-wrap gap-2">{([["introduction","Inledning"],["scope","Omfattning"],["pricing_notes","Priser och villkor"]] as const).map(([field,label]) => <button key={field} type="button" onClick={() => focusSection(field)} className="rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-muted">{label}</button>)}</nav>
       <label className="block space-y-2"><span className="text-sm font-medium">Offerttitel</span>
         <input disabled={!editable} maxLength={160} value={draft.title} onChange={(e) => change("title", e.target.value)}
           className="w-full rounded-md border bg-background p-3 disabled:opacity-70" /></label>
@@ -173,14 +178,14 @@ function OfferEditor() {
         ["pricing_notes", "Priser och villkor"],
       ] as const).map(([key, label]) =>
         <label key={key} className="block space-y-2"><span className="text-sm font-medium">{label}</span>
-          <textarea disabled={!editable} rows={6} value={draft[key]} onChange={(e) => change(key, e.target.value)}
-            className="w-full resize-y rounded-md border bg-background p-3 disabled:opacity-70" /></label>)}
-    </div><ProposalPreview draft={draft} /></div>}
+          <textarea id={`offer-field-${key}`} disabled={!editable} rows={6} value={draft[key]} onChange={(e) => change(key, e.target.value)}
+            className="w-full resize-y rounded-md border bg-background p-3 disabled:opacity-70" /><span className="block text-right text-xs text-muted-foreground">{draft[key].trim() ? draft[key].trim().split(/\s+/).length : 0} ord</span></label>)}
+    </div><ProposalPreview draft={draft} onEdit={focusSection} /></div>}
   </main>;
 }
 
 
-function ProposalPreview({ draft }: { draft: Draft }) {
+function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "introduction" | "scope" | "pricing_notes") => void }) {
   return <section className="space-y-3 lg:sticky lg:top-6">
     <div className="flex justify-between"><h2 className="font-semibold">Förhandsvisning</h2><span className="text-xs text-muted-foreground">Liggande A4 · Live</span></div>
     <div className="aspect-[297/210] overflow-auto rounded-lg border bg-white p-7 text-slate-900 shadow-lg">
@@ -189,10 +194,10 @@ function ProposalPreview({ draft }: { draft: Draft }) {
       <h3 className="mt-3 break-words text-2xl font-semibold">{draft.title || "Offerttitel"}</h3>
       <div className="my-5 h-1 w-12 bg-slate-900" />
       <div className="grid grid-cols-2 gap-6 text-xs leading-relaxed">
-        <p className="whitespace-pre-wrap break-words">{draft.introduction || "Din inledning visas här."}</p>
+        <button type="button" onClick={() => onEdit("introduction")} className="w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2" title="Redigera inledning">{draft.introduction || "Din inledning visas här. Klicka för att redigera."}</button>
         <div className="space-y-4 border-l pl-5">
-          <section><h4 className="font-semibold">Omfattning och upplägg</h4><p className="mt-2 whitespace-pre-wrap break-words">{draft.scope || "Beskriv erbjudandet."}</p></section>
-          <section><h4 className="font-semibold">Priser och villkor</h4><p className="mt-2 whitespace-pre-wrap break-words">{draft.pricing_notes || "Ange priser och villkor."}</p></section>
+          <section><h4 className="font-semibold">Omfattning och upplägg</h4><button type="button" onClick={() => onEdit("scope")} className="mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2">{draft.scope || "Beskriv erbjudandet. Klicka för att redigera."}</button></section>
+          <section><h4 className="font-semibold">Priser och villkor</h4><button type="button" onClick={() => onEdit("pricing_notes")} className="mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2">{draft.pricing_notes || "Ange priser och villkor. Klicka för att redigera."}</button></section>
         </div>
       </div>
     </div>

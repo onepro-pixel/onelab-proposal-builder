@@ -19,6 +19,8 @@ type ProposalTheme = "midnight" | "ocean" | "forest";
 type ContentBlock = { id: string; heading: string; body: string };
 type Draft = {
   theme: ProposalTheme;
+  sender_name: string;
+  logo_url: string;
   blocks: ContentBlock[];
   title: string;
   customer_name: string;
@@ -28,6 +30,8 @@ type Draft = {
 };
 const toDraft = (offer: Offer): Draft => ({
   theme: offer.content?.theme === "ocean" || offer.content?.theme === "forest" ? offer.content.theme : "midnight",
+  sender_name: typeof offer.content?.sender_name === "string" ? offer.content.sender_name : "",
+  logo_url: typeof offer.content?.logo_url === "string" ? offer.content.logo_url : "",
   title: offer.title,
   customer_name: offer.customer_name,
   introduction: offer.content?.introduction ?? "",
@@ -102,6 +106,8 @@ function OfferEditor() {
           pricing_notes: payload.pricing_notes,
           blocks: payload.blocks,
           theme: payload.theme,
+          sender_name: payload.sender_name,
+          logo_url: payload.logo_url,
         },
       }).eq("id", offerId).eq("owner_id", ownerRef.current).select("id").maybeSingle();
       if (saveError || !data) {
@@ -174,7 +180,7 @@ function OfferEditor() {
     setDraft((current) => current ? { ...current, blocks: current.blocks.filter((block) => block.id !== id) } : current);
   }
 
-  function change(field: "title" | "customer_name" | "introduction" | "scope" | "pricing_notes", value: string) {
+  function change(field: "title" | "customer_name" | "introduction" | "scope" | "pricing_notes" | "sender_name" | "logo_url", value: string) {
     setDraft((current) => current ? { ...current, [field]: value } : current);
   }
 
@@ -198,6 +204,11 @@ function OfferEditor() {
       <fieldset className="space-y-2 rounded-lg border p-4"><legend className="px-1 text-sm font-semibold">Designprofil</legend>
         <div className="flex flex-wrap gap-2">{([["midnight","Midnight","#17243d"],["ocean","Ocean","#0d6b86"],["forest","Forest","#24634d"]] as const).map(([theme,label,color]) => <button type="button" key={theme} disabled={!editable} aria-pressed={draft.theme === theme} onClick={() => changeTheme(theme)} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-xs transition disabled:opacity-50 ${draft.theme === theme ? "border-slate-900 ring-2 ring-slate-300" : "hover:bg-muted"}`}><span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />{label}</button>)}</div>
         <p className="text-xs text-muted-foreground">Färgprofilen sparas automatiskt med offerten.</p>
+      </fieldset>
+      <fieldset className="space-y-3 rounded-lg border p-4"><legend className="px-1 text-sm font-semibold">Avsändare och logotyp</legend>
+        <label className="block space-y-1"><span className="text-xs font-medium">Företagsnamn på offerten</span><input disabled={!editable} maxLength={120} value={draft.sender_name} onChange={(e) => change("sender_name", e.target.value)} placeholder="Ditt företag AB" className="w-full rounded-md border bg-background p-2" /></label>
+        <label className="block space-y-1"><span className="text-xs font-medium">Logotyp (bildadress, HTTPS)</span><input disabled={!editable} type="url" value={draft.logo_url} onChange={(e) => change("logo_url", e.target.value)} placeholder="https://exempel.se/logotyp.png" className="w-full rounded-md border bg-background p-2" /></label>
+        <p className="text-xs text-muted-foreground">Inställningarna gäller denna offert. Gemensam företagsprofil byggs separat.</p>
       </fieldset>
       <label className="block space-y-2"><span className="text-sm font-medium">Offerttitel</span>
         <input disabled={!editable} maxLength={160} value={draft.title} onChange={(e) => change("title", e.target.value)}
@@ -236,7 +247,7 @@ function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "int
     <div className="flex justify-between"><h2 className="font-semibold">Förhandsvisning</h2><span className="text-xs text-muted-foreground">Liggande A4 · Live</span></div>
     <div className="aspect-[297/210] overflow-auto rounded-lg border bg-white text-slate-900 shadow-lg">
       <div className="h-2 w-full" style={{ backgroundColor: accent }} /><div className="p-7">
-      <header className="flex justify-between border-b pb-3 text-xs uppercase tracking-widest"><strong style={{ color: accent }}>Proposo</strong><span>Affärsförslag</span></header>
+      <header className="flex justify-between border-b pb-3 text-xs uppercase tracking-widest"><div className="flex min-w-0 items-center gap-2">{/^https:\/\/[^\s]+$/i.test(draft.logo_url) && <img src={draft.logo_url} alt="Företagslogotyp" className="h-8 max-w-20 object-contain" referrerPolicy="no-referrer" onError={(event) => { event.currentTarget.style.display = "none"; }} />}<strong className="truncate" style={{ color: accent }}>{draft.sender_name || "Proposo"}</strong></div><span>Affärsförslag</span></header>
       <p className="mt-6 text-xs uppercase tracking-widest text-slate-500">Till {draft.customer_name || "Kund"}</p>
       <h3 className="mt-3 break-words text-2xl font-semibold" style={{ color: accent }}>{draft.title || "Offerttitel"}</h3>
       <div className="my-5 h-1 w-12" style={{ backgroundColor: accent }} />

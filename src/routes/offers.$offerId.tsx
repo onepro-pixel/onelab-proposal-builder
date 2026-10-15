@@ -144,7 +144,7 @@ function OfferEditor() {
     setDraft((current) => current ? { ...current, [field]: value } : current);
   }
 
-  return <main className="mx-auto max-w-4xl space-y-7 px-6 py-10">
+  return <main className="mx-auto max-w-7xl space-y-7 px-6 py-10">
     <header className="flex flex-wrap items-center justify-between gap-3">
       <button type="button" onClick={() => { void leaveEditor(); }} className="text-sm underline">Tillbaka till offerter</button>
       <div className="flex items-center gap-4"><span role="status" className="text-sm text-muted-foreground">
@@ -160,7 +160,7 @@ function OfferEditor() {
       <p className="mt-2 text-sm text-muted-foreground">Ändringar sparas automatiskt när du slutar skriva.</p>
     </div>
     {error && <p role="alert" className="rounded-md border p-3 text-sm text-destructive">{error}</p>}
-    {draft && <div className="space-y-5">
+    {draft && <div className="grid gap-8 lg:grid-cols-2"><div className="space-y-5">
       <label className="block space-y-2"><span className="text-sm font-medium">Offerttitel</span>
         <input disabled={!editable} maxLength={160} value={draft.title} onChange={(e) => change("title", e.target.value)}
           className="w-full rounded-md border bg-background p-3 disabled:opacity-70" /></label>
@@ -175,6 +175,6 @@ function OfferEditor() {
         <label key={key} className="block space-y-2"><span className="text-sm font-medium">{label}</span>
           <textarea disabled={!editable} rows={6} value={draft[key]} onChange={(e) => change(key, e.target.value)}
             className="w-full resize-y rounded-md border bg-background p-3 disabled:opacity-70" /></label>)}
-    </div>}
+    </div><ProposalPreview draft={draft} /></div>}
   </main>;
 }

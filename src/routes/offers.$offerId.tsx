@@ -13,7 +13,7 @@ type Offer = {
   title: string;
   customer_name: string;
   status: "draft" | "completed";
-  content: { introduction?: string; scope?: string; pricing_notes?: string };
+  content: Record<string, unknown> | null;
 };
 type Draft = {
   title: string;
@@ -42,6 +42,7 @@ function OfferEditor() {
   const saveSequence = useRef(Promise.resolve());
   const draftRef = useRef<Draft | null>(null);
   const ownerRef = useRef("");
+  const originalContent = useRef<Record<string, unknown>>({});
   const savingRef = useRef(false);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ function OfferEditor() {
       if (loadError) { setError(loadError.message); setLoading(false); return; }
       if (!data) { setError("Offerten finns inte eller så saknar du behörighet."); setLoading(false); return; }
       const offer = data as Offer;
+      originalContent.current = offer.content ?? {};
       const initial = toDraft(offer);
       lastSaved.current = JSON.stringify(initial);
       ownerRef.current = auth.user.id;
@@ -88,6 +90,7 @@ function OfferEditor() {
         title: payload.title,
         customer_name: payload.customer_name,
         content: {
+          ...originalContent.current,
           introduction: payload.introduction,
           scope: payload.scope,
           pricing_notes: payload.pricing_notes,

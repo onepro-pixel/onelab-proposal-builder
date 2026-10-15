@@ -39,8 +39,8 @@ export const Route = createFileRoute("/api/proposal-draft")({
             unit: product.unit,
             price_sek: product.price_sek,
           }));
-          const explicitPriceLines = payload.notes.split(/\\r?\\n/).filter((line) =>
-            /(?:\\d[\\d\\s.,]*\\s*(?:kr|sek)|\\bpris\\b|\\bavgift\\b|\\brabatt\\b)/i.test(line)
+          const explicitPriceLines = payload.notes.split(/\r?\n/).filter((line) =>
+            /(?:\d[\d\s.,]*\s*(?:kr|sek)|\bpris\b|\bavgift\b|\brabatt\b)/i.test(line)
           ).slice(0, 40);
           const ai = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
@@ -67,12 +67,12 @@ export const Route = createFileRoute("/api/proposal-draft")({
           const pricingText = parsed.pricing_notes as string;
           const catalogAmounts = approvedCatalog.filter((p) => p.price_sek !== null).map((p) => Number(p.price_sek));
           const allowedAmounts = [...catalogAmounts, ...explicitPriceLines.flatMap((line) =>
-            [...line.matchAll(/(\\d[\\d\\s.,]*)\\s*(?:kr|sek)\\b/gi)].map((match) =>
-              Number(match[1].replace(/\\s/g, "").replace(",", "."))
+            [...line.matchAll(/(\d[\d\s.,]*)\s*(?:kr|sek)\b/gi)].map((match) =>
+              Number(match[1].replace(/\s/g, "").replace(",", "."))
             )
           )].filter((amount) => Number.isFinite(amount));
-          const generatedAmounts = [...pricingText.matchAll(/(\\d[\\d\\s.,]*)\\s*(?:kr|sek)\\b/gi)].map((match) =>
-            Number(match[1].replace(/\\s/g, "").replace(",", "."))
+          const generatedAmounts = [...pricingText.matchAll(/(\d[\d\s.,]*)\s*(?:kr|sek)\b/gi)].map((match) =>
+            Number(match[1].replace(/\s/g, "").replace(",", "."))
           );
           const unverified = generatedAmounts.filter((amount) => !allowedAmounts.some((allowed) => Math.abs(allowed - amount) < 0.001));
           const warnings: string[] = [];

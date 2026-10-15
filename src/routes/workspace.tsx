@@ -18,6 +18,7 @@ function Workspace() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const configuredProject = (() => { try { return new URL(import.meta.env.NEXT_PUBLIC_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL || "").hostname.split(".")[0] || "okänt"; } catch { return "okänt"; } })();
 
   async function load() {
     setError("");
@@ -86,7 +87,7 @@ function Workspace() {
               {creating ? "Skapar…" : "Skapa företag"}
             </button>
           </form>
-          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+          {error && <div role="alert" className="space-y-2 text-sm text-destructive"><p>{error}</p><p>Databasprojekt: {configuredProject}</p><p>Felkod för felsökning: {error.includes("schema cache") ? "SCHEMA_CACHE" : "OTHER"}</p></div>}
         </section>
       )}
     </main>

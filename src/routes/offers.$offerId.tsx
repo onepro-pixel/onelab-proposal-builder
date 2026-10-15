@@ -47,6 +47,7 @@ function OfferEditor() {
   const [editable, setEditable] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [printWarning, setPrintWarning] = useState("");
   const [saveState, setSaveState] = useState<"saved" | "pending" | "saving" | "error">("saved");
   const lastSaved = useRef("");
   const saveSequence = useRef(Promise.resolve());
@@ -150,6 +151,8 @@ function OfferEditor() {
       const saved = await persist(JSON.stringify(draftRef.current));
       if (!saved) return;
     }
+    const contentLength = [draftRef.current?.introduction, draftRef.current?.scope, draftRef.current?.pricing_notes, ...(draftRef.current?.blocks.map((b) => b.body) ?? [])].join(" ").length;
+    setPrintWarning(contentLength > 2200 ? "Lång offert: kontrollera sidbrytningar i utskriftsförhandsvisningen innan du sparar PDF." : "Kontrollera formatet Liggande A4 och aktivera bakgrundsgrafik i utskriftsdialogen.");
     window.print();
   }
 
@@ -193,7 +196,7 @@ function OfferEditor() {
   }
 
   return <main className="proposal-editor mx-auto max-w-7xl space-y-7 px-6 py-10">
-    <style>{`@media print { @page { size: A4 landscape; margin: 0; } body { background: white !important; } body * { visibility: hidden !important; } .proposal-print-page, .proposal-print-page * { visibility: visible !important; } .proposal-print-page { position: absolute !important; top: 0 !important; left: 0 !important; width: 297mm !important; min-height: 210mm !important; height: auto !important; aspect-ratio: auto !important; max-height: none !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: 0 !important; border-radius: 0 !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; } .proposal-print-page > div:last-child { padding: 18mm !important; } .proposal-print-page section { break-inside: avoid; page-break-inside: avoid; } .proposal-print-page button { appearance: none; border: 0; background: transparent; color: inherit; } .proposal-print-page footer { break-inside: avoid; } }`}</style>
+    <style>{`@media print { @page { size: A4 landscape; margin: 0; } body { background: white !important; } body * { visibility: hidden !important; } .proposal-print-page, .proposal-print-page * { visibility: visible !important; } .proposal-print-page { position: absolute !important; top: 0 !important; left: 0 !important; width: 297mm !important; min-height: 210mm !important; height: auto !important; aspect-ratio: auto !important; max-height: none !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: 0 !important; border-radius: 0 !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; } .proposal-print-page > div:last-child { padding: 18mm !important; } .proposal-print-page section { break-inside: avoid; page-break-inside: avoid; } .proposal-print-page button { appearance: none; border: 0; background: transparent; color: inherit; } .proposal-print-page footer { break-inside: avoid; } .proposal-print-page .proposal-placeholder { visibility: hidden !important; } }`}</style>
     <header className="flex flex-wrap items-center justify-between gap-3">
       <button type="button" onClick={() => { void leaveEditor(); }} className="text-sm underline">Tillbaka till offerter</button>
       <div className="flex items-center gap-4"><span role="status" className="text-sm text-muted-foreground">
@@ -210,6 +213,7 @@ function OfferEditor() {
       <p className="mt-2 text-sm text-muted-foreground">Ändringar sparas automatiskt när du slutar skriva.</p>
     </div>
     {error && <p role="alert" className="rounded-md border p-3 text-sm text-destructive">{error}</p>}
+    {printWarning && <p role="status" className="rounded-md border p-3 text-sm">{printWarning}</p>}
     {draft && <div className="grid gap-8 lg:grid-cols-2"><div className="space-y-5"><nav aria-label="Offertens avsnitt" className="flex flex-wrap gap-2">{([["introduction","Inledning"],["scope","Omfattning"],["pricing_notes","Priser och villkor"]] as const).map(([field,label]) => <button key={field} type="button" onClick={() => focusSection(field)} className="rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-muted">{label}</button>)}</nav>
       <fieldset className="space-y-2 rounded-lg border p-4"><legend className="px-1 text-sm font-semibold">Designprofil</legend>
         <div className="flex flex-wrap gap-2">{([["midnight","Midnight","#17243d"],["ocean","Ocean","#0d6b86"],["forest","Forest","#24634d"]] as const).map(([theme,label,color]) => <button type="button" key={theme} disabled={!editable} aria-pressed={draft.theme === theme} onClick={() => changeTheme(theme)} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-xs transition disabled:opacity-50 ${draft.theme === theme ? "border-slate-900 ring-2 ring-slate-300" : "hover:bg-muted"}`}><span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />{label}</button>)}</div>
@@ -262,10 +266,10 @@ function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "int
       <h3 className="mt-3 break-words text-2xl font-semibold tracking-tight" style={{ color: accent }}>{draft.title || "Offerttitel"}</h3>
       <div className="my-5 h-1 w-12" style={{ backgroundColor: accent }} />
       <div className="grid grid-cols-2 gap-6 text-xs leading-relaxed">
-        <button type="button" onClick={() => onEdit("introduction")} className="w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2" title="Redigera inledning">{draft.introduction || "Din inledning visas här. Klicka för att redigera."}</button>
+        <button type="button" onClick={() => onEdit("introduction")} className={`w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.introduction ? "proposal-placeholder" : ""}`} title="Redigera inledning">{draft.introduction || "Din inledning visas här. Klicka för att redigera."}</button>
         <div className="space-y-4 border-l pl-5">
-          <section><h4 className="font-semibold" style={{ color: accent }}>Omfattning och upplägg</h4><button type="button" onClick={() => onEdit("scope")} className="mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2">{draft.scope || "Beskriv erbjudandet. Klicka för att redigera."}</button></section>
-          <section><h4 className="font-semibold" style={{ color: accent }}>Priser och villkor</h4><button type="button" onClick={() => onEdit("pricing_notes")} className="mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2">{draft.pricing_notes || "Ange priser och villkor. Klicka för att redigera."}</button></section>
+          <section><h4 className="font-semibold" style={{ color: accent }}>Omfattning och upplägg</h4><button type="button" onClick={() => onEdit("scope")} className={`mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.scope ? "proposal-placeholder" : ""}`}>{draft.scope || "Beskriv erbjudandet. Klicka för att redigera."}</button></section>
+          <section><h4 className="font-semibold" style={{ color: accent }}>Priser och villkor</h4><button type="button" onClick={() => onEdit("pricing_notes")} className={`mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.pricing_notes ? "proposal-placeholder" : ""}`}>{draft.pricing_notes || "Ange priser och villkor. Klicka för att redigera."}</button></section>
         </div>
       </div>
       {draft.blocks.length > 0 && <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-5">{draft.blocks.map((block) => <section key={block.id} className="min-w-0"><h4 className="break-words text-xs font-semibold" style={{ color: accent }}>{block.heading || "Avsnitt"}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed">{block.body || "Skriv innehåll i blocket."}</p></section>)}</div>}

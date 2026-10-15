@@ -49,6 +49,8 @@ function OfferEditor() {
   const [error, setError] = useState("");
   const [printWarning, setPrintWarning] = useState("");
   const [meetingNotes, setMeetingNotes] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState("");
   const [notesPreview, setNotesPreview] = useState<{ introduction: string; scope: string; pricing_notes: string } | null>(null);
   const [saveState, setSaveState] = useState<"saved" | "pending" | "saving" | "error">("saved");
   const lastSaved = useRef("");
@@ -172,6 +174,27 @@ function OfferEditor() {
     document.getElementById(`offer-field-${field}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
+  async function generateWithAI() {
+    if (!meetingNotes.trim() || generating) return;
+    setGenerating(true); setGenerationError(""); setNotesPreview(null);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token;
+      if (!token) throw new Error("Logga in igen för att använda AI.");
+      const response = await fetch("/api/proposal-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ offerId, notes: meetingNotes }),
+      });
+      const result = await response.json() as { error?: string; introduction?: string; scope?: string; pricing_notes?: string };
+      if (!response.ok) throw new Error(result.error || "Kunde inte generera utkast.");
+      if (typeof result.introduction !== "string" || typeof result.scope !== "string" || typeof result.pricing_notes !== "string") throw new Error("AI:n gav ett ogiltigt svar.");
+      setNotesPreview({ introduction: result.introduction, scope: result.scope, pricing_notes: result.pricing_notes });
+    } catch (error) {
+      setGenerationError(error instanceof Error ? error.message : "Kunde inte generera utkast.");
+    } finally { setGenerating(false); }
+  }
+
   function prepareNotes() {
     const lines = meetingNotes.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
     if (!lines.length) return;
@@ -241,9 +264,10 @@ function OfferEditor() {
     {printWarning && <p role="status" className="rounded-md border p-3 text-sm">{printWarning}</p>}
     {draft && <div className="grid gap-8 lg:grid-cols-2"><div className="space-y-5"><nav aria-label="Offertens avsnitt" className="flex flex-wrap gap-2">{([["introduction","Inledning"],["scope","Omfattning"],["pricing_notes","Priser och villkor"]] as const).map(([field,label]) => <button key={field} type="button" onClick={() => focusSection(field)} className="rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-muted">{label}</button>)}</nav>
       {editable && <section className="space-y-3 rounded-xl border p-4">
-        <div><h2 className="font-semibold">Mötesanteckningar</h2><p className="mt-1 text-xs text-muted-foreground">Förbered ett utkast från anteckningar. Denna första version sorterar texten efter nyckelord – AI-generering tillkommer. Inga priser hittas på.</p></div>
+        <div><h2 className="font-semibold">Mötesanteckningar</h2><p className="mt-1 text-xs text-muted-foreground">Förbered ett utkast från anteckningar. AI skapar ett förslag från dina anteckningar. Granska alltid text och priser innan du använder förslaget.</p></div>
         <textarea value={meetingNotes} onChange={(event) => { setMeetingNotes(event.target.value); setNotesPreview(null); }} rows={6} maxLength={20000} placeholder="Klistra in kundens behov, överenskommet upplägg och priser..." className="w-full resize-y rounded-md border bg-background p-3 text-sm" />
-        <button type="button" disabled={!meetingNotes.trim()} onClick={prepareNotes} className="rounded-md border px-3 py-2 text-sm disabled:opacity-50">Förbered utkast</button>
+        <div className="flex flex-wrap gap-2"><button type="button" disabled={!meetingNotes.trim() || generating} onClick={() => { void generateWithAI(); }} className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50">{generating ? "AI skriver utkast…" : "Generera med AI"}</button><button type="button" disabled={!meetingNotes.trim() || generating} onClick={prepareNotes} className="rounded-md border px-3 py-2 text-sm disabled:opacity-50">Sortera utan AI</button></div>
+        {generationError && <p role="alert" className="text-xs text-destructive">{generationError}</p>}
         {notesPreview && <div className="space-y-2 rounded-lg bg-muted/50 p-3 text-sm">
           <p className="font-medium">Granska förslaget innan du använder det</p>
           <p><strong>Inledning:</strong> {notesPreview.introduction || "Saknas"}</p>

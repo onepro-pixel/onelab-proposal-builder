@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,11 +40,11 @@ function OfferEditor() {
   const [saveState, setSaveState] = useState<"saved" | "pending" | "saving" | "error">("saved");
   const lastSaved = useRef("");
   const saveSequence = useRef(Promise.resolve());
-  const revision = useRef(0);
-  const isCurrent = useRef(true);
+  const draftRef = useRef<Draft | null>(null);
+  const ownerRef = useRef("");
+  const savingRef = useRef(false);
 
   useEffect(() => {
-    isCurrent.current = true;
     let active = true;
     setLoading(true);
     setDraft(null);
@@ -61,42 +61,81 @@ function OfferEditor() {
       const offer = data as Offer;
       const initial = toDraft(offer);
       lastSaved.current = JSON.stringify(initial);
+      ownerRef.current = auth.user.id;
       setEditable(offer.owner_id === auth.user.id);
       setDraft(initial);
       setSaveState("saved");
       setLoading(false);
     })();
-    return () => { active = false; isCurrent.current = false; };
+    return () => { active = false; };
   }, [offerId, navigate]);
+
+  // Keep the latest form available to explicit saves and navigation guards.
+  draftRef.current = draft;
+
+  async function persist(snapshot: string): Promise<boolean> {
+    if (snapshot === lastSaved.current) return true;
+    if (savingRef.current) {
+      await saveSequence.current;
+      if (snapshot === lastSaved.current) return true;
+    }
+    let succeeded = false;
+    savingRef.current = true;
+    setSaveState("saving");
+    const payload = JSON.parse(snapshot) as Draft;
+    const job = saveSequence.current.catch(() => {}).then(async () => {
+      const { data, error: saveError } = await supabase.from("proposals").update({
+        title: payload.title,
+        customer_name: payload.customer_name,
+        content: {
+          introduction: payload.introduction,
+          scope: payload.scope,
+          pricing_notes: payload.pricing_notes,
+        },
+      }).eq("id", offerId).eq("owner_id", ownerRef.current).select("id").maybeSingle();
+      if (saveError || !data) {
+        setError(saveError?.message ?? "Offerten kunde inte sparas. Kontrollera behörigheten.");
+        setSaveState("error");
+      } else {
+        lastSaved.current = snapshot;
+        succeeded = true;
+        setError("");
+        setSaveState(draftRef.current && JSON.stringify(draftRef.current) !== snapshot ? "pending" : "saved");
+      }
+    }).finally(() => { savingRef.current = false; });
+    saveSequence.current = job;
+    await job;
+    return succeeded;
+  }
 
   useEffect(() => {
     if (!draft || !editable) return;
     const snapshot = JSON.stringify(draft);
     if (snapshot === lastSaved.current) return;
     setSaveState("pending");
-    const currentRevision = ++revision.current;
-    const timer = setTimeout(() => {
-      // Serialize writes so an older response cannot overwrite a newer draft.
-      saveSequence.current = saveSequence.current.catch(() => {}).then(async () => {
-        if (!isCurrent.current || currentRevision !== revision.current) return;
-        setSaveState("saving");
-        const payload = JSON.parse(snapshot) as Draft;
-        const { error: saveError } = await supabase.from("proposals").update({
-          title: payload.title,
-          customer_name: payload.customer_name,
-          content: {
-            introduction: payload.introduction,
-            scope: payload.scope,
-            pricing_notes: payload.pricing_notes,
-          },
-        }).eq("id", offerId).eq("owner_id", (await supabase.auth.getUser()).data.user?.id ?? "");
-        if (!isCurrent.current || currentRevision !== revision.current) return;
-        if (saveError) { setSaveState("error"); setError(saveError.message); }
-        else { lastSaved.current = snapshot; setSaveState("saved"); setError(""); }
-      });
-    }, 900);
+    const timer = setTimeout(() => { void persist(snapshot); }, 900);
     return () => clearTimeout(timer);
   }, [draft, editable, offerId]);
+
+  useEffect(() => {
+    const guard = (event: BeforeUnloadEvent) => {
+      if (editable && draftRef.current && JSON.stringify(draftRef.current) !== lastSaved.current) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", guard);
+    return () => window.removeEventListener("beforeunload", guard);
+  }, [editable]);
+
+  async function leaveEditor() {
+    if (editable && draftRef.current) {
+      const snapshot = JSON.stringify(draftRef.current);
+      if (!(await persist(snapshot))) return;
+    }
+    navigate({ to: "/offers" });
+  }
+
 
   function change(field: keyof Draft, value: string) {
     setDraft((current) => current ? { ...current, [field]: value } : current);
@@ -104,13 +143,14 @@ function OfferEditor() {
 
   return <main className="mx-auto max-w-4xl space-y-7 px-6 py-10">
     <header className="flex flex-wrap items-center justify-between gap-3">
-      <Link to="/offers" className="text-sm underline">Tillbaka till offerter</Link>
-      <span role="status" className="text-sm text-muted-foreground">
+      <button type="button" onClick={() => { void leaveEditor(); }} className="text-sm underline">Tillbaka till offerter</button>
+      <div className="flex items-center gap-4"><span role="status" className="text-sm text-muted-foreground">
         {loading ? "Hämtar…" : !editable ? "Endast läsning" :
           saveState === "pending" ? "Ändringar väntar på sparning…" :
           saveState === "saving" ? "Sparar…" :
           saveState === "error" ? "Kunde inte spara" : "Alla ändringar sparade"}
       </span>
+      {editable && draft && <button type="button" onClick={() => { void persist(JSON.stringify(draft)); }} className="rounded-md border px-3 py-2 text-sm">Spara nu</button>}</div>
     </header>
     <div><p className="text-sm text-muted-foreground">Proposo / Offertutkast</p>
       <h1 className="text-3xl font-semibold">Redigera offert</h1>

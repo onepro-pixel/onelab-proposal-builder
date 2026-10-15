@@ -184,7 +184,8 @@ function OfferEditor() {
     setDraft((current) => current ? { ...current, [field]: value } : current);
   }
 
-  return <main className="mx-auto max-w-7xl space-y-7 px-6 py-10">
+  return <main className="proposal-editor mx-auto max-w-7xl space-y-7 px-6 py-10">
+    <style>{`@media print { @page { size: A4 landscape; margin: 0; } body { background: white !important; } body * { visibility: hidden !important; } .proposal-print-page, .proposal-print-page * { visibility: visible !important; } .proposal-print-page { position: absolute !important; inset: 0 auto auto 0 !important; width: 297mm !important; min-height: 210mm !important; height: auto !important; max-height: none !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: 0 !important; border-radius: 0 !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; } .proposal-print-page > div:last-child { padding: 18mm !important; } .proposal-print-page section { break-inside: avoid; } }`}</style>
     <header className="flex flex-wrap items-center justify-between gap-3">
       <button type="button" onClick={() => { void leaveEditor(); }} className="text-sm underline">Tillbaka till offerter</button>
       <div className="flex items-center gap-4"><span role="status" className="text-sm text-muted-foreground">
@@ -193,6 +194,7 @@ function OfferEditor() {
           saveState === "saving" ? "Sparar…" :
           saveState === "error" ? "Kunde inte spara" : "Alla ändringar sparade"}
       </span>
+      {draft && <button type="button" onClick={() => window.print()} className="rounded-md border px-3 py-2 text-sm">Skriv ut / Spara som PDF</button>}
       {editable && draft && <button type="button" onClick={() => { void persist(JSON.stringify(draft)); }} className="rounded-md border px-3 py-2 text-sm">Spara nu</button>}</div>
     </header>
     <div><p className="text-sm text-muted-foreground">Proposo / Offertutkast</p>
@@ -245,7 +247,7 @@ function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "int
   const accent = draft.theme === "ocean" ? "#0d6b86" : draft.theme === "forest" ? "#24634d" : "#17243d";
   return <section className="space-y-3 lg:sticky lg:top-6">
     <div className="flex justify-between"><h2 className="font-semibold">Förhandsvisning</h2><span className="text-xs text-muted-foreground">Liggande A4 · Live</span></div>
-    <div className="aspect-[297/210] overflow-auto rounded-lg border bg-white text-slate-900 shadow-lg">
+    <div className="proposal-print-page aspect-[297/210] overflow-auto rounded-lg border bg-white text-slate-900 shadow-lg">
       <div className="h-2 w-full" style={{ backgroundColor: accent }} /><div className="p-7">
       <header className="flex justify-between border-b pb-3 text-xs uppercase tracking-widest"><div className="flex min-w-0 items-center gap-2">{/^https:\/\/[^\s]+$/i.test(draft.logo_url) && <img src={draft.logo_url} alt="Företagslogotyp" className="h-8 max-w-20 object-contain" referrerPolicy="no-referrer" onError={(event) => { event.currentTarget.style.display = "none"; }} />}<strong className="truncate" style={{ color: accent }}>{draft.sender_name || "Proposo"}</strong></div><span>Affärsförslag</span></header>
       <p className="mt-6 text-xs uppercase tracking-widest text-slate-500">Till {draft.customer_name || "Kund"}</p>
@@ -261,6 +263,6 @@ function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "int
       {draft.blocks.length > 0 && <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-5">{draft.blocks.map((block) => <section key={block.id} className="min-w-0"><h4 className="break-words text-xs font-semibold">{block.heading || "Avsnitt"}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed">{block.body || "Skriv innehåll i blocket."}</p></section>)}</div>}
       </div>
     </div>
-    <p className="text-xs text-muted-foreground">Liveförhandsvisning. PDF-export och sidbrytning tillkommer senare.</p>
+    <p className="text-xs text-muted-foreground">Liveförhandsvisning. Använd Skriv ut / Spara som PDF för en första PDF-version. Automatisk sidbrytning för längre offerter återstår.</p>
   </section>;
 }

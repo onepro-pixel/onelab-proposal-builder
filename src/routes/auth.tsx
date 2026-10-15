@@ -38,11 +38,11 @@ function AuthPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       
-      navigate({ to: "/forslag", replace: true });
+      navigate({ to: "/workspace", replace: true });
     });
     const { data } = supabase.auth.onAuthStateChange((ev, session) => {
       if (ev === "SIGNED_IN" && session) {
-        navigate({ to: "/forslag", replace: true });
+        navigate({ to: "/workspace", replace: true });
       }
     });
     return () => data.subscription.unsubscribe();

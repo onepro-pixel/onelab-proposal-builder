@@ -161,7 +161,7 @@ function OfferEditor() {
       if (!saved) return;
     }
     const contentLength = [draftRef.current?.introduction, draftRef.current?.scope, draftRef.current?.pricing_notes, ...(draftRef.current?.blocks.map((b) => b.body) ?? [])].join(" ").length;
-    setPrintWarning(contentLength > 2200 ? "Lång offert: kontrollera sidbrytningar i utskriftsförhandsvisningen innan du sparar PDF." : "Kontrollera formatet Liggande A4 och aktivera bakgrundsgrafik i utskriftsdialogen.");
+    setPrintWarning(contentLength > 2200 ? "Lång offert: kontrollera alla sidor och sidbrytningar i utskriftsförhandsvisningen. Välj Liggande A4 och bakgrundsgrafik." : "Kontrollera formatet Liggande A4 och aktivera bakgrundsgrafik i utskriftsdialogen.");
     window.print();
   }
 
@@ -250,7 +250,7 @@ function OfferEditor() {
   }
 
   return <main className="proposal-editor mx-auto max-w-7xl space-y-7 px-6 py-10">
-    <style>{`@media print { @page { size: A4 landscape; margin: 0; } body { background: white !important; } body * { visibility: hidden !important; } .proposal-print-page, .proposal-print-page * { visibility: visible !important; } .proposal-print-page { position: absolute !important; top: 0 !important; left: 0 !important; width: 297mm !important; min-height: 210mm !important; height: auto !important; aspect-ratio: auto !important; max-height: none !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: 0 !important; border-radius: 0 !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; } .proposal-print-page > div:last-child { padding: 18mm !important; } .proposal-print-page section { break-inside: avoid; page-break-inside: avoid; } .proposal-print-page button { appearance: none; border: 0; background: transparent; color: inherit; } .proposal-print-page footer { break-inside: avoid; } .proposal-print-page .proposal-placeholder { visibility: hidden !important; } }`}</style>
+    <style>{`@media print { @page { size: A4 landscape; margin: 0; } body { background: white !important; } body * { visibility: hidden !important; } .proposal-print-page, .proposal-print-page * { visibility: visible !important; } .proposal-print-page { position: absolute !important; top: 0 !important; left: 0 !important; width: 297mm !important; min-height: 210mm !important; height: auto !important; aspect-ratio: auto !important; max-height: none !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: 0 !important; border-radius: 0 !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; } .proposal-print-page > div:last-child { padding: 14mm 18mm !important; } .proposal-print-page section { break-inside: avoid; page-break-inside: avoid; } .proposal-print-page .proposal-content-columns { display: block !important; } .proposal-print-page .proposal-content-columns > * { display: block !important; width: 100% !important; border-left: 0 !important; padding-left: 0 !important; margin-bottom: 8mm !important; } .proposal-print-page .proposal-custom-blocks { display: block !important; } .proposal-print-page .proposal-custom-blocks > section { display: block !important; margin-bottom: 6mm !important; } .proposal-print-page .proposal-print-body { padding: 14mm 18mm !important; } .proposal-print-page header { break-inside: avoid; } .proposal-print-page button { appearance: none; border: 0; background: transparent; color: inherit; } .proposal-print-page footer { break-inside: avoid; } .proposal-print-page .proposal-placeholder { visibility: hidden !important; } }`}</style>
     <header className="flex flex-wrap items-center justify-between gap-3">
       <button type="button" onClick={() => { void leaveEditor(); }} className="text-sm underline">Tillbaka till offerter</button>
       <div className="flex items-center gap-4"><span role="status" className="text-sm text-muted-foreground">
@@ -343,17 +343,17 @@ function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "int
       <p className="mt-6 text-xs uppercase tracking-widest text-slate-500">Framtaget för {draft.customer_name || "Kund"}</p>
       <h3 className="mt-3 break-words text-2xl font-semibold tracking-tight" style={{ color: accent }}>{draft.title || "Offerttitel"}</h3>
       <div className="my-5 h-1 w-12" style={{ backgroundColor: accent }} />
-      <div className="grid grid-cols-2 gap-6 text-xs leading-relaxed">
+      <div className="proposal-content-columns grid grid-cols-2 gap-6 text-xs leading-relaxed">
         <button type="button" onClick={() => onEdit("introduction")} className={`w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.introduction ? "proposal-placeholder" : ""}`} title="Redigera inledning">{draft.introduction || "Din inledning visas här. Klicka för att redigera."}</button>
         <div className="space-y-4 border-l pl-5">
           <section><h4 className="font-semibold" style={{ color: accent }}>Omfattning och upplägg</h4><button type="button" onClick={() => onEdit("scope")} className={`mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.scope ? "proposal-placeholder" : ""}`}>{draft.scope || "Beskriv erbjudandet. Klicka för att redigera."}</button></section>
           <section><h4 className="font-semibold" style={{ color: accent }}>Priser och villkor</h4><button type="button" onClick={() => onEdit("pricing_notes")} className={`mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.pricing_notes ? "proposal-placeholder" : ""}`}>{draft.pricing_notes || "Ange priser och villkor. Klicka för att redigera."}</button></section>
         </div>
       </div>
-      {draft.blocks.length > 0 && <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-5">{draft.blocks.map((block) => <section key={block.id} className="min-w-0"><h4 className="break-words text-xs font-semibold" style={{ color: accent }}>{block.heading || "Avsnitt"}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed">{block.body || "Skriv innehåll i blocket."}</p></section>)}</div>}
+      {draft.blocks.length > 0 && <div className="proposal-custom-blocks mt-6 grid grid-cols-2 gap-4 border-t pt-5">{draft.blocks.map((block) => <section key={block.id} className="min-w-0"><h4 className="break-words text-xs font-semibold" style={{ color: accent }}>{block.heading || "Avsnitt"}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed">{block.body || "Skriv innehåll i blocket."}</p></section>)}</div>}
       <footer className="mt-8 flex justify-between border-t pt-3 text-[10px] uppercase tracking-widest text-slate-500"><span>{draft.sender_name || "Proposo"}</span><span>Affärsförslag</span></footer>
       </div>
     </div>
-    <p className="text-xs text-muted-foreground">Liveförhandsvisning. Använd Skriv ut / Spara som PDF för en första PDF-version. Automatisk sidbrytning för längre offerter återstår.</p>
+    <p className="text-xs text-muted-foreground">Liveförhandsvisning. Använd Skriv ut / Spara som PDF för en första PDF-version. Längre offerter skrivs ut i en kolumn för bättre läsbarhet. Granska alltid sidbrytningarna.</p>
   </section>;
 }

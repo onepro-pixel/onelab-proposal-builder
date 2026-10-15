@@ -102,7 +102,7 @@ function Workspace() {
             {workspaces.map((org) => <article key={org.id} className="rounded-xl border p-5">
               <h2 className="text-lg font-semibold">{org.name}</h2>
               <p className="text-sm text-muted-foreground">{org.role === "admin" ? "Administratör" : "Säljare"}</p>
-              <div className="mt-3 flex flex-wrap gap-4"><Link to="/offers" className="text-sm font-medium underline">Visa offerter</Link>{org.role === "admin" && <Link to="/branding/$organizationId" params={{ organizationId: org.id }} className="text-sm font-medium underline">Grafisk profil</Link>}</div>
+              <div className="mt-3 flex flex-wrap gap-4"><Link to="/offers" className="text-sm font-medium underline">Visa offerter</Link><Link to="/products/$organizationId" params={{ organizationId: org.id }} className="text-sm font-medium underline">Produktbibliotek</Link>{org.role === "admin" && <Link to="/branding/$organizationId" params={{ organizationId: org.id }} className="text-sm font-medium underline">Grafisk profil</Link>}</div>
             </article>)}
           </div>}
           <form onSubmit={createOrganization} className="max-w-lg space-y-3 rounded-xl border p-5">

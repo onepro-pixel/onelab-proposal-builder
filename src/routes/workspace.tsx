@@ -62,7 +62,7 @@ function Workspace() {
     // The SQL migration introduces this RPC; generated database types are refreshed
     // when the migration is applied.
     const { error: createError } = await supabase.rpc(
-      "create_organization", { p_name: name.trim() }
+      "proposo_create_company" as never, { company_name: name.trim() } as never
     );
     if (createError) {
       setError(createError.message);

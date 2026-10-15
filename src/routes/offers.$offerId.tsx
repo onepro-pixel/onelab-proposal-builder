@@ -15,8 +15,10 @@ type Offer = {
   status: "draft" | "completed";
   content: (Record<string, unknown> & { introduction?: string; scope?: string; pricing_notes?: string }) | null;
 };
+type ProposalTheme = "midnight" | "ocean" | "forest";
 type ContentBlock = { id: string; heading: string; body: string };
 type Draft = {
+  theme: ProposalTheme;
   blocks: ContentBlock[];
   title: string;
   customer_name: string;
@@ -25,6 +27,7 @@ type Draft = {
   pricing_notes: string;
 };
 const toDraft = (offer: Offer): Draft => ({
+  theme: offer.content?.theme === "ocean" || offer.content?.theme === "forest" ? offer.content.theme : "midnight",
   title: offer.title,
   customer_name: offer.customer_name,
   introduction: offer.content?.introduction ?? "",
@@ -98,6 +101,7 @@ function OfferEditor() {
           scope: payload.scope,
           pricing_notes: payload.pricing_notes,
           blocks: payload.blocks,
+          theme: payload.theme,
         },
       }).eq("id", offerId).eq("owner_id", ownerRef.current).select("id").maybeSingle();
       if (saveError || !data) {
@@ -149,6 +153,10 @@ function OfferEditor() {
     document.getElementById(`offer-field-${field}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
+  function changeTheme(theme: ProposalTheme) {
+    setDraft((current) => current ? { ...current, theme } : current);
+  }
+
   function addBlock() {
     setDraft((current) => current ? { ...current, blocks: [...current.blocks, { id: crypto.randomUUID(), heading: "Nytt avsnitt", body: "" }] } : current);
   }
@@ -187,6 +195,10 @@ function OfferEditor() {
     </div>
     {error && <p role="alert" className="rounded-md border p-3 text-sm text-destructive">{error}</p>}
     {draft && <div className="grid gap-8 lg:grid-cols-2"><div className="space-y-5"><nav aria-label="Offertens avsnitt" className="flex flex-wrap gap-2">{([["introduction","Inledning"],["scope","Omfattning"],["pricing_notes","Priser och villkor"]] as const).map(([field,label]) => <button key={field} type="button" onClick={() => focusSection(field)} className="rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-muted">{label}</button>)}</nav>
+      <fieldset className="space-y-2 rounded-lg border p-4"><legend className="px-1 text-sm font-semibold">Designprofil</legend>
+        <div className="flex flex-wrap gap-2">{([["midnight","Midnight","#17243d"],["ocean","Ocean","#0d6b86"],["forest","Forest","#24634d"]] as const).map(([theme,label,color]) => <button type="button" key={theme} disabled={!editable} aria-pressed={draft.theme === theme} onClick={() => changeTheme(theme)} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-xs transition disabled:opacity-50 ${draft.theme === theme ? "border-slate-900 ring-2 ring-slate-300" : "hover:bg-muted"}`}><span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />{label}</button>)}</div>
+        <p className="text-xs text-muted-foreground">Färgprofilen sparas automatiskt med offerten.</p>
+      </fieldset>
       <label className="block space-y-2"><span className="text-sm font-medium">Offerttitel</span>
         <input disabled={!editable} maxLength={160} value={draft.title} onChange={(e) => change("title", e.target.value)}
           className="w-full rounded-md border bg-background p-3 disabled:opacity-70" /></label>
@@ -219,13 +231,15 @@ function OfferEditor() {
 
 
 function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "introduction" | "scope" | "pricing_notes") => void }) {
+  const accent = draft.theme === "ocean" ? "#0d6b86" : draft.theme === "forest" ? "#24634d" : "#17243d";
   return <section className="space-y-3 lg:sticky lg:top-6">
     <div className="flex justify-between"><h2 className="font-semibold">Förhandsvisning</h2><span className="text-xs text-muted-foreground">Liggande A4 · Live</span></div>
-    <div className="aspect-[297/210] overflow-auto rounded-lg border bg-white p-7 text-slate-900 shadow-lg">
-      <header className="flex justify-between border-b pb-3 text-xs uppercase tracking-widest"><strong>Proposo</strong><span>Affärsförslag</span></header>
+    <div className="aspect-[297/210] overflow-auto rounded-lg border bg-white text-slate-900 shadow-lg">
+      <div className="h-2 w-full" style={{ backgroundColor: accent }} /><div className="p-7">
+      <header className="flex justify-between border-b pb-3 text-xs uppercase tracking-widest"><strong style={{ color: accent }}>Proposo</strong><span>Affärsförslag</span></header>
       <p className="mt-6 text-xs uppercase tracking-widest text-slate-500">Till {draft.customer_name || "Kund"}</p>
-      <h3 className="mt-3 break-words text-2xl font-semibold">{draft.title || "Offerttitel"}</h3>
-      <div className="my-5 h-1 w-12 bg-slate-900" />
+      <h3 className="mt-3 break-words text-2xl font-semibold" style={{ color: accent }}>{draft.title || "Offerttitel"}</h3>
+      <div className="my-5 h-1 w-12" style={{ backgroundColor: accent }} />
       <div className="grid grid-cols-2 gap-6 text-xs leading-relaxed">
         <button type="button" onClick={() => onEdit("introduction")} className="w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2" title="Redigera inledning">{draft.introduction || "Din inledning visas här. Klicka för att redigera."}</button>
         <div className="space-y-4 border-l pl-5">
@@ -234,6 +248,7 @@ function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "int
         </div>
       </div>
       {draft.blocks.length > 0 && <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-5">{draft.blocks.map((block) => <section key={block.id} className="min-w-0"><h4 className="break-words text-xs font-semibold">{block.heading || "Avsnitt"}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed">{block.body || "Skriv innehåll i blocket."}</p></section>)}</div>}
+      </div>
     </div>
     <p className="text-xs text-muted-foreground">Liveförhandsvisning. PDF-export och sidbrytning tillkommer senare.</p>
   </section>;

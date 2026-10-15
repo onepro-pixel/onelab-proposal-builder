@@ -51,6 +51,7 @@ function OfferEditor() {
   const [meetingNotes, setMeetingNotes] = useState("");
   const [generating, setGenerating] = useState(false);
   const [generationError, setGenerationError] = useState("");
+  const [priceWarnings, setPriceWarnings] = useState<string[]>([]);
   const [catalogPrices, setCatalogPrices] = useState<{ name: string; price_sek: number | null; unit: string }[]>([]);
   const [notesPreview, setNotesPreview] = useState<{ introduction: string; scope: string; pricing_notes: string } | null>(null);
   const [saveState, setSaveState] = useState<"saved" | "pending" | "saving" | "error">("saved");
@@ -180,7 +181,7 @@ function OfferEditor() {
 
   async function generateWithAI() {
     if (!meetingNotes.trim() || generating) return;
-    setGenerating(true); setGenerationError(""); setNotesPreview(null);
+    setGenerating(true); setGenerationError(""); setPriceWarnings([]); setNotesPreview(null);
     try {
       const { data: session } = await supabase.auth.getSession();
       const token = session.session?.access_token;
@@ -190,10 +191,11 @@ function OfferEditor() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ offerId, notes: meetingNotes }),
       });
-      const result = await response.json() as { error?: string; introduction?: string; scope?: string; pricing_notes?: string };
+      const result = await response.json() as { error?: string; introduction?: string; scope?: string; pricing_notes?: string; price_warnings?: string[] };
       if (!response.ok) throw new Error(result.error || "Kunde inte generera utkast.");
       if (typeof result.introduction !== "string" || typeof result.scope !== "string" || typeof result.pricing_notes !== "string") throw new Error("AI:n gav ett ogiltigt svar.");
       setNotesPreview({ introduction: result.introduction, scope: result.scope, pricing_notes: result.pricing_notes });
+      setPriceWarnings(Array.isArray(result.price_warnings) ? result.price_warnings.filter((warning): warning is string => typeof warning === "string") : []);
     } catch (error) {
       setGenerationError(error instanceof Error ? error.message : "Kunde inte generera utkast.");
     } finally { setGenerating(false); }
@@ -269,7 +271,7 @@ function OfferEditor() {
     {draft && <div className="grid gap-8 lg:grid-cols-2"><div className="space-y-5"><nav aria-label="Offertens avsnitt" className="flex flex-wrap gap-2">{([["introduction","Inledning"],["scope","Omfattning"],["pricing_notes","Priser och villkor"]] as const).map(([field,label]) => <button key={field} type="button" onClick={() => focusSection(field)} className="rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-muted">{label}</button>)}</nav>
       {editable && <section className="space-y-3 rounded-xl border p-4">
         <div><h2 className="font-semibold">Mötesanteckningar</h2><p className="mt-1 text-xs text-muted-foreground">Förbered ett utkast från anteckningar. AI skapar ett förslag från dina anteckningar. Granska alltid text och priser innan du använder förslaget.</p></div>
-        <textarea value={meetingNotes} onChange={(event) => { setMeetingNotes(event.target.value); setNotesPreview(null); }} rows={6} maxLength={20000} placeholder="Klistra in kundens behov, överenskommet upplägg och priser..." className="w-full resize-y rounded-md border bg-background p-3 text-sm" />
+        <textarea value={meetingNotes} onChange={(event) => { setMeetingNotes(event.target.value); setNotesPreview(null); setPriceWarnings([]); }} rows={6} maxLength={20000} placeholder="Klistra in kundens behov, överenskommet upplägg och priser..." className="w-full resize-y rounded-md border bg-background p-3 text-sm" />
         <div className="flex flex-wrap gap-2"><button type="button" disabled={!meetingNotes.trim() || generating} onClick={() => { void generateWithAI(); }} className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50">{generating ? "AI skriver utkast…" : "Generera med AI"}</button><button type="button" disabled={!meetingNotes.trim() || generating} onClick={prepareNotes} className="rounded-md border px-3 py-2 text-sm disabled:opacity-50">Sortera utan AI</button></div>
         {generationError && <p role="alert" className="text-xs text-destructive">{generationError}</p>}
         {notesPreview && <div className="space-y-2 rounded-lg bg-muted/50 p-3 text-sm">
@@ -277,6 +279,7 @@ function OfferEditor() {
           <p><strong>Inledning:</strong> {notesPreview.introduction || "Saknas"}</p>
           <p><strong>Omfattning:</strong> {notesPreview.scope || "Saknas"}</p>
           <p><strong>Priser:</strong> {notesPreview.pricing_notes || "Inga uttryckliga prisuppgifter hittades"}</p>
+          {priceWarnings.length > 0 && <div role="alert" className="rounded-md border border-amber-500 p-3"><p className="font-semibold">Prisuppgifter behöver kontrolleras</p>{priceWarnings.map((warning, index) => <p key={index} className="mt-1 text-xs">{warning}</p>)}</div>}
           <p className="text-xs text-muted-foreground">Endast tomma offertfält fylls i. Befintlig text skrivs inte över. Kontrollera att alla belopp och enheter stämmer.</p>
           <div className="rounded-md border bg-background p-3"><p className="font-medium">Prisgranskning mot företagets bibliotek</p>
             {!catalogPrices.length ? <p className="mt-1 text-xs text-muted-foreground">Inga aktiva katalogpriser finns. Kontrollera priser manuellt.</p> :

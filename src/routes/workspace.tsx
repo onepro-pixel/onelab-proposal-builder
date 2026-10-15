@@ -55,7 +55,7 @@ function Workspace() {
     // The SQL migration introduces this RPC; generated database types are refreshed
     // when the migration is applied.
     const { error: createError } = await supabase.rpc(
-      "create_organization" as never, { p_name: name.trim() } as never
+      "create_organization", { p_name: name.trim() }
     );
     if (createError) setError(createError.message);
     else { setName(""); await load(); }
@@ -74,7 +74,7 @@ function Workspace() {
             {workspaces.map((org) => <article key={org.id} className="rounded-xl border p-5">
               <h2 className="text-lg font-semibold">{org.name}</h2>
               <p className="text-sm text-muted-foreground">{org.role === "admin" ? "Administratör" : "Säljare"}</p>
-              <p className="mt-3 text-sm text-muted-foreground">Offertdashboarden byggs i nästa steg.</p>
+              <Link to="/offers" className="mt-3 inline-block text-sm font-medium underline">Visa offerter</Link>
             </article>)}
           </div>}
           <form onSubmit={createOrganization} className="max-w-lg space-y-3 rounded-xl border p-5">

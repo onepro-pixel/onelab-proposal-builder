@@ -18,10 +18,14 @@ function Workspace() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState("");
+  const [errorDetails, setErrorDetails] = useState("");
   const configuredProject = (() => { try { return new URL(import.meta.env.NEXT_PUBLIC_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL || "").hostname.split(".")[0] || "okänt"; } catch { return "okänt"; } })();
 
   async function load() {
     setError("");
+    setErrorCode("");
+    setErrorDetails("");
     const { data: auth, error: authError } = await supabase.auth.getUser();
     if (authError || !auth.user) {
       navigate({ to: "/auth", replace: true });
@@ -53,12 +57,18 @@ function Workspace() {
     if (!name.trim() || creating) return;
     setCreating(true);
     setError("");
+    setErrorCode("");
+    setErrorDetails("");
     // The SQL migration introduces this RPC; generated database types are refreshed
     // when the migration is applied.
     const { error: createError } = await supabase.rpc(
       "create_organization", { p_name: name.trim() }
     );
-    if (createError) setError(createError.message);
+    if (createError) {
+      setError(createError.message);
+      setErrorCode(createError.code ?? "UNKNOWN");
+      setErrorDetails(createError.details ?? createError.hint ?? "Inga ytterligare detaljer från API:t.");
+    }
     else { setName(""); await load(); }
     setCreating(false);
   }
@@ -87,7 +97,7 @@ function Workspace() {
               {creating ? "Skapar…" : "Skapa företag"}
             </button>
           </form>
-          {error && <div role="alert" className="space-y-2 text-sm text-destructive"><p>{error}</p><p>Databasprojekt: {configuredProject}</p><p>Felkod för felsökning: {error.includes("schema cache") ? "SCHEMA_CACHE" : "OTHER"}</p></div>}
+          {error && <div role="alert" className="space-y-2 text-sm text-destructive"><p>{error}</p><p>Databasprojekt: {configuredProject}</p><p>API-felkod: {errorCode || "UNKNOWN"}</p><p>API-detaljer: {errorDetails || "Inga ytterligare detaljer."}</p></div>}
         </section>
       )}
     </main>

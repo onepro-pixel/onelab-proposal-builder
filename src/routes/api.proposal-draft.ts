@@ -65,7 +65,10 @@ export const Route = createFileRoute("/api/proposal-draft")({
           }
           // Independent deterministic checks: flag uncertain prices for human review.
           const pricingText = parsed.pricing_notes as string;
-          const catalogAmounts = approvedCatalog.filter((p) => p.price_sek !== null).map((p) => Number(p.price_sek));
+          const mentionedText = (payload.notes + "\\n" + String(parsed.scope)).toLocaleLowerCase("sv-SE");
+          const catalogAmounts = approvedCatalog.filter((p) =>
+            p.price_sek !== null && mentionedText.includes(p.name.toLocaleLowerCase("sv-SE"))
+          ).map((p) => Number(p.price_sek));
           const allowedAmounts = [...catalogAmounts, ...explicitPriceLines.flatMap((line) =>
             [...line.matchAll(/(\d[\d\s.,]*)\s*(?:kr|sek)\b/gi)].map((match) =>
               Number(match[1].replace(/\s/g, "").replace(",", "."))
@@ -76,7 +79,7 @@ export const Route = createFileRoute("/api/proposal-draft")({
           );
           const unverified = generatedAmounts.filter((amount) => !allowedAmounts.some((allowed) => Math.abs(allowed - amount) < 0.001));
           const warnings: string[] = [];
-          if (unverified.length) warnings.push("AI-förslaget innehåller belopp som inte kunde verifieras mot prisbiblioteket eller mötesanteckningarnas prisrader.");
+          if (unverified.length) warnings.push("AI-förslaget innehåller belopp som inte kunde verifieras mot relevanta katalogtjänster eller mötesanteckningarnas prisrader.");
           if (pricingText.trim() && !explicitPriceLines.length && !catalogAmounts.length) warnings.push("Inga godkända eller uttryckliga prisuppgifter hittades. Granska pristexten extra noggrant.");
           return Response.json({ introduction: parsed.introduction, scope: parsed.scope, pricing_notes: pricingText, price_warnings: warnings }, { headers: { "Cache-Control": "no-store" } });
         } catch {

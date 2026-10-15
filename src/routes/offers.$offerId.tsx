@@ -178,3 +178,24 @@ function OfferEditor() {
     </div><ProposalPreview draft={draft} /></div>}
   </main>;
 }
+
+
+function ProposalPreview({ draft }: { draft: Draft }) {
+  return <section className="space-y-3 lg:sticky lg:top-6">
+    <div className="flex justify-between"><h2 className="font-semibold">Förhandsvisning</h2><span className="text-xs text-muted-foreground">Liggande A4 · Live</span></div>
+    <div className="aspect-[297/210] overflow-auto rounded-lg border bg-white p-7 text-slate-900 shadow-lg">
+      <header className="flex justify-between border-b pb-3 text-xs uppercase tracking-widest"><strong>Proposo</strong><span>Affärsförslag</span></header>
+      <p className="mt-6 text-xs uppercase tracking-widest text-slate-500">Till {draft.customer_name || "Kund"}</p>
+      <h3 className="mt-3 break-words text-2xl font-semibold">{draft.title || "Offerttitel"}</h3>
+      <div className="my-5 h-1 w-12 bg-slate-900" />
+      <div className="grid grid-cols-2 gap-6 text-xs leading-relaxed">
+        <p className="whitespace-pre-wrap break-words">{draft.introduction || "Din inledning visas här."}</p>
+        <div className="space-y-4 border-l pl-5">
+          <section><h4 className="font-semibold">Omfattning och upplägg</h4><p className="mt-2 whitespace-pre-wrap break-words">{draft.scope || "Beskriv erbjudandet."}</p></section>
+          <section><h4 className="font-semibold">Priser och villkor</h4><p className="mt-2 whitespace-pre-wrap break-words">{draft.pricing_notes || "Ange priser och villkor."}</p></section>
+        </div>
+      </div>
+    </div>
+    <p className="text-xs text-muted-foreground">Liveförhandsvisning. PDF-export och sidbrytning tillkommer senare.</p>
+  </section>;
+}

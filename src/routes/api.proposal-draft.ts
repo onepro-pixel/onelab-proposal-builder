@@ -19,7 +19,7 @@ export const Route = createFileRoute("/api/proposal-draft")({
           const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
           const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
           if (!url || !key || !process.env.OPENAI_API_KEY) return Response.json({ error: "AI-tjänsten är inte konfigurerad." }, { status: 503 });
-          const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+          const supabase = createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false, autoRefreshToken: false } });
           const { data: auth, error: authError } = await supabase.auth.getUser(token);
           if (authError || !auth.user) return Response.json({ error: "Sessionen har gått ut." }, { status: 401 });
           const { data: offer, error: offerError } = await supabase.from("proposals")

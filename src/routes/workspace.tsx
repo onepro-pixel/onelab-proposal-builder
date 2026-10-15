@@ -20,6 +20,7 @@ function Workspace() {
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
   const [errorDetails, setErrorDetails] = useState("");
+  const [diagnostics, setDiagnostics] = useState("");
   const configuredProject = (() => { try { return new URL(import.meta.env.NEXT_PUBLIC_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL || "").hostname.split(".")[0] || "okänt"; } catch { return "okänt"; } })();
 
   async function load() {
@@ -59,6 +60,7 @@ function Workspace() {
     setError("");
     setErrorCode("");
     setErrorDetails("");
+    setDiagnostics("");
     // The SQL migration introduces this RPC; generated database types are refreshed
     // when the migration is applied.
     const { error: createError } = await supabase.rpc(
@@ -68,6 +70,21 @@ function Workspace() {
       setError(createError.message);
       setErrorCode(createError.code ?? "UNKNOWN");
       setErrorDetails(createError.details ?? createError.hint ?? "Inga ytterligare detaljer från API:t.");
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData.session;
+      let jwtRole = "saknas";
+      if (session?.access_token) {
+        try {
+          const body = session.access_token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+          const claims = JSON.parse(atob(body)) as { role?: string };
+          jwtRole = claims.role ?? "saknas";
+        } catch { jwtRole = "kunde inte avläsas"; }
+      }
+      const { error: probeError } = await supabase.from("organizations").select("id").limit(1);
+      setDiagnostics("Session: " + (session ? "finns" : "saknas")
+        + " | JWT-roll: " + jwtRole
+        + " | Tabelltest: " + (probeError ? probeError.code + " – " + probeError.message : "OK"));
+
     }
     else { setName(""); await load(); }
     setCreating(false);
@@ -97,7 +114,7 @@ function Workspace() {
               {creating ? "Skapar…" : "Skapa företag"}
             </button>
           </form>
-          {error && <div role="alert" className="space-y-2 text-sm text-destructive"><p>{error}</p><p>Databasprojekt: {configuredProject}</p><p>API-felkod: {errorCode || "UNKNOWN"}</p><p>API-detaljer: {errorDetails || "Inga ytterligare detaljer."}</p></div>}
+          {error && <div role="alert" className="space-y-2 text-sm text-destructive"><p>{error}</p><p>Databasprojekt: {configuredProject}</p><p>API-felkod: {errorCode || "UNKNOWN"}</p><p>API-detaljer: {errorDetails || "Inga ytterligare detaljer."}</p>{diagnostics && <p>Diagnostik: {diagnostics}</p>}</div>}
         </section>
       )}
     </main>

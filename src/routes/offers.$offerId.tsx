@@ -13,7 +13,7 @@ type Offer = {
   title: string;
   customer_name: string;
   status: "draft" | "completed";
-  content: Record<string, unknown> | null;
+  content: (Record<string, unknown> & { introduction?: string; scope?: string; pricing_notes?: string }) | null;
 };
 type Draft = {
   title: string;

@@ -145,6 +145,14 @@ function OfferEditor() {
     return () => window.removeEventListener("beforeunload", guard);
   }, [editable]);
 
+  async function printOffer() {
+    if (editable && draftRef.current) {
+      const saved = await persist(JSON.stringify(draftRef.current));
+      if (!saved) return;
+    }
+    window.print();
+  }
+
   async function leaveEditor() {
     if (editable && draftRef.current) {
       const snapshot = JSON.stringify(draftRef.current);
@@ -194,7 +202,7 @@ function OfferEditor() {
           saveState === "saving" ? "Sparar…" :
           saveState === "error" ? "Kunde inte spara" : "Alla ändringar sparade"}
       </span>
-      {draft && <button type="button" onClick={() => window.print()} className="rounded-md border px-3 py-2 text-sm">Skriv ut / Spara som PDF</button>}
+      {draft && <button type="button" onClick={() => { void printOffer(); }} className="rounded-md border px-3 py-2 text-sm">Skriv ut / Spara som PDF</button>}
       {editable && draft && <button type="button" onClick={() => { void persist(JSON.stringify(draft)); }} className="rounded-md border px-3 py-2 text-sm">Spara nu</button>}</div>
     </header>
     <div><p className="text-sm text-muted-foreground">Proposo / Offertutkast</p>
@@ -250,17 +258,17 @@ function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "int
     <div className="proposal-print-page aspect-[297/210] overflow-auto rounded-lg border bg-white text-slate-900 shadow-lg">
       <div className="h-2 w-full" style={{ backgroundColor: accent }} /><div className="p-7">
       <header className="flex justify-between border-b pb-3 text-xs uppercase tracking-widest"><div className="flex min-w-0 items-center gap-2">{/^https:\/\/[^\s]+$/i.test(draft.logo_url) && <img src={draft.logo_url} alt="Företagslogotyp" className="h-8 max-w-20 object-contain" referrerPolicy="no-referrer" onError={(event) => { event.currentTarget.style.display = "none"; }} />}<strong className="truncate" style={{ color: accent }}>{draft.sender_name || "Proposo"}</strong></div><span>Affärsförslag</span></header>
-      <p className="mt-6 text-xs uppercase tracking-widest text-slate-500">Till {draft.customer_name || "Kund"}</p>
-      <h3 className="mt-3 break-words text-2xl font-semibold" style={{ color: accent }}>{draft.title || "Offerttitel"}</h3>
+      <p className="mt-6 text-xs uppercase tracking-widest text-slate-500">Framtaget för {draft.customer_name || "Kund"}</p>
+      <h3 className="mt-3 break-words text-2xl font-semibold tracking-tight" style={{ color: accent }}>{draft.title || "Offerttitel"}</h3>
       <div className="my-5 h-1 w-12" style={{ backgroundColor: accent }} />
       <div className="grid grid-cols-2 gap-6 text-xs leading-relaxed">
         <button type="button" onClick={() => onEdit("introduction")} className="w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2" title="Redigera inledning">{draft.introduction || "Din inledning visas här. Klicka för att redigera."}</button>
         <div className="space-y-4 border-l pl-5">
-          <section><h4 className="font-semibold">Omfattning och upplägg</h4><button type="button" onClick={() => onEdit("scope")} className="mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2">{draft.scope || "Beskriv erbjudandet. Klicka för att redigera."}</button></section>
-          <section><h4 className="font-semibold">Priser och villkor</h4><button type="button" onClick={() => onEdit("pricing_notes")} className="mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2">{draft.pricing_notes || "Ange priser och villkor. Klicka för att redigera."}</button></section>
+          <section><h4 className="font-semibold" style={{ color: accent }}>Omfattning och upplägg</h4><button type="button" onClick={() => onEdit("scope")} className="mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2">{draft.scope || "Beskriv erbjudandet. Klicka för att redigera."}</button></section>
+          <section><h4 className="font-semibold" style={{ color: accent }}>Priser och villkor</h4><button type="button" onClick={() => onEdit("pricing_notes")} className="mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2">{draft.pricing_notes || "Ange priser och villkor. Klicka för att redigera."}</button></section>
         </div>
       </div>
-      {draft.blocks.length > 0 && <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-5">{draft.blocks.map((block) => <section key={block.id} className="min-w-0"><h4 className="break-words text-xs font-semibold">{block.heading || "Avsnitt"}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed">{block.body || "Skriv innehåll i blocket."}</p></section>)}</div>}
+      {draft.blocks.length > 0 && <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-5">{draft.blocks.map((block) => <section key={block.id} className="min-w-0"><h4 className="break-words text-xs font-semibold" style={{ color: accent }}>{block.heading || "Avsnitt"}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed">{block.body || "Skriv innehåll i blocket."}</p></section>)}</div>}
       </div>
     </div>
     <p className="text-xs text-muted-foreground">Liveförhandsvisning. Använd Skriv ut / Spara som PDF för en första PDF-version. Automatisk sidbrytning för längre offerter återstår.</p>

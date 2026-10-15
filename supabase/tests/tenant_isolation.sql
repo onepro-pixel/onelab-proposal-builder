@@ -11,7 +11,6 @@ values
 ('33333333-3333-4333-8333-333333333333', '00000000-0000-0000-0000-000000000000','authenticated','authenticated','proposo-admin-b@example.invalid','',now(),now(),now()),
 ('44444444-4444-4444-8444-444444444444', '00000000-0000-0000-0000-000000000000','authenticated','authenticated','proposo-seller-b@example.invalid','',now(),now(),now());
 
-create temporary table test_ids (org_a uuid, org_b uuid, proposal_a uuid, proposal_b uuid);
 do $$
 declare a uuid; b uuid; pa uuid; pb uuid;
 begin
@@ -24,7 +23,6 @@ begin
   (b,'44444444-4444-4444-8444-444444444444','seller');
   insert into public.proposals(organization_id,owner_id,customer_name) values (a,'22222222-2222-4222-8222-222222222222','Customer A') returning id into pa;
   insert into public.proposals(organization_id,owner_id,customer_name) values (b,'44444444-4444-4444-8444-444444444444','Customer B') returning id into pb;
-  insert into test_ids values(a,b,pa,pb);
 end $$;
 
 set local role authenticated;
@@ -36,7 +34,7 @@ begin
   if n <> 1 then raise exception 'Seller A sees % proposals, expected 1',n; end if;
   select count(*) into n from public.organizations;
   if n <> 1 then raise exception 'Seller A sees % organizations, expected 1',n; end if;
-  select count(*) into n from public.proposals p join test_ids t on p.id=t.proposal_b;
+  select count(*) into n from public.proposals p where p.customer_name = 'Customer B';
   if n <> 0 then raise exception 'Cross-tenant proposal leaked'; end if;
 end $$;
 

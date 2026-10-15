@@ -74,7 +74,7 @@ function OffersDashboard() {
       organization_id: selected, owner_id: userId,
       customer_name: customer.trim(), title: title.trim() || "Ny offert",
       status: "draft", content: {},
-    } as never);
+    });
     if (insertError) setError(insertError.message);
     else { setCustomer(""); setTitle(""); await refresh(selected); }
     setBusy(false);

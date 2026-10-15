@@ -48,6 +48,8 @@ function OfferEditor() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [printWarning, setPrintWarning] = useState("");
+  const [meetingNotes, setMeetingNotes] = useState("");
+  const [notesPreview, setNotesPreview] = useState<{ introduction: string; scope: string; pricing_notes: string } | null>(null);
   const [saveState, setSaveState] = useState<"saved" | "pending" | "saving" | "error">("saved");
   const lastSaved = useRef("");
   const saveSequence = useRef(Promise.resolve());
@@ -170,6 +172,29 @@ function OfferEditor() {
     document.getElementById(`offer-field-${field}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
+  function prepareNotes() {
+    const lines = meetingNotes.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return;
+    const priceLines = lines.filter((line) => /(?:\bpris\b|\bkr\b|\bsek\b|\bavgift\b|\bbudget\b)/i.test(line));
+    const scopeLines = lines.filter((line) => /(?:\bbehov\b|\bönskar\b|\bupplägg\b|\bleverans\b|\btjänst\b|\bomfattning\b)/i.test(line));
+    setNotesPreview({
+      introduction: lines.slice(0, 4).join("\n"),
+      scope: scopeLines.length ? scopeLines.join("\n") : lines.slice(4).join("\n"),
+      pricing_notes: priceLines.join("\n"),
+    });
+  }
+
+  function applyNotes() {
+    if (!notesPreview) return;
+    setDraft((current) => current ? {
+      ...current,
+      introduction: current.introduction || notesPreview.introduction,
+      scope: current.scope || notesPreview.scope,
+      pricing_notes: current.pricing_notes || notesPreview.pricing_notes,
+    } : current);
+    setNotesPreview(null);
+  }
+
   function changeTheme(theme: ProposalTheme) {
     setDraft((current) => current ? { ...current, theme } : current);
   }
@@ -215,6 +240,19 @@ function OfferEditor() {
     {error && <p role="alert" className="rounded-md border p-3 text-sm text-destructive">{error}</p>}
     {printWarning && <p role="status" className="rounded-md border p-3 text-sm">{printWarning}</p>}
     {draft && <div className="grid gap-8 lg:grid-cols-2"><div className="space-y-5"><nav aria-label="Offertens avsnitt" className="flex flex-wrap gap-2">{([["introduction","Inledning"],["scope","Omfattning"],["pricing_notes","Priser och villkor"]] as const).map(([field,label]) => <button key={field} type="button" onClick={() => focusSection(field)} className="rounded-full border px-3 py-1.5 text-xs font-medium hover:bg-muted">{label}</button>)}</nav>
+      {editable && <section className="space-y-3 rounded-xl border p-4">
+        <div><h2 className="font-semibold">Mötesanteckningar</h2><p className="mt-1 text-xs text-muted-foreground">Förbered ett utkast från anteckningar. Denna första version sorterar texten efter nyckelord – AI-generering tillkommer. Inga priser hittas på.</p></div>
+        <textarea value={meetingNotes} onChange={(event) => { setMeetingNotes(event.target.value); setNotesPreview(null); }} rows={6} maxLength={20000} placeholder="Klistra in kundens behov, överenskommet upplägg och priser..." className="w-full resize-y rounded-md border bg-background p-3 text-sm" />
+        <button type="button" disabled={!meetingNotes.trim()} onClick={prepareNotes} className="rounded-md border px-3 py-2 text-sm disabled:opacity-50">Förbered utkast</button>
+        {notesPreview && <div className="space-y-2 rounded-lg bg-muted/50 p-3 text-sm">
+          <p className="font-medium">Granska förslaget innan du använder det</p>
+          <p><strong>Inledning:</strong> {notesPreview.introduction || "Saknas"}</p>
+          <p><strong>Omfattning:</strong> {notesPreview.scope || "Saknas"}</p>
+          <p><strong>Priser:</strong> {notesPreview.pricing_notes || "Inga uttryckliga prisuppgifter hittades"}</p>
+          <p className="text-xs text-muted-foreground">Endast tomma offertfält fylls i. Befintlig text skrivs inte över.</p>
+          <button type="button" onClick={applyNotes} className="rounded-md bg-primary px-3 py-2 text-primary-foreground">Använd i offerten</button>
+        </div>}
+      </section>}
       <fieldset className="space-y-2 rounded-lg border p-4"><legend className="px-1 text-sm font-semibold">Designprofil</legend>
         <div className="flex flex-wrap gap-2">{([["midnight","Midnight","#17243d"],["ocean","Ocean","#0d6b86"],["forest","Forest","#24634d"]] as const).map(([theme,label,color]) => <button type="button" key={theme} disabled={!editable} aria-pressed={draft.theme === theme} onClick={() => changeTheme(theme)} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-xs transition disabled:opacity-50 ${draft.theme === theme ? "border-slate-900 ring-2 ring-slate-300" : "hover:bg-muted"}`}><span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />{label}</button>)}</div>
         <p className="text-xs text-muted-foreground">Färgprofilen sparas automatiskt med offerten.</p>

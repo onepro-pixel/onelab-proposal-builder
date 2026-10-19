@@ -343,9 +343,9 @@ function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "int
       <p className="mt-6 text-xs uppercase tracking-widest text-slate-500">Framtaget för {draft.customer_name || "Kund"}</p>
       <h3 className="mt-3 break-words text-2xl font-semibold tracking-tight" style={{ color: accent }}>{draft.title || "Offerttitel"}</h3>
       <div className="my-5 h-1 w-12" style={{ backgroundColor: accent }} />
-      <div className="proposal-content-columns grid grid-cols-2 gap-6 text-xs leading-relaxed">
-        <button type="button" onClick={() => onEdit("introduction")} className={`w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.introduction ? "proposal-placeholder" : ""}`} title="Redigera inledning">{draft.introduction || "Din inledning visas här. Klicka för att redigera."}</button>
-        <div className="space-y-4 border-l pl-5">
+      <div className="proposal-content-columns grid grid-cols-1 gap-5 text-xs leading-relaxed">
+        <section><h4 className="mb-2 font-semibold" style={{ color: accent }}>Inledning</h4><button type="button" onClick={() => onEdit("introduction")} className={`w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.introduction ? "proposal-placeholder" : ""}`} title="Redigera inledning">{draft.introduction || "Din inledning visas här. Klicka för att redigera."}</button></section>
+        <div className="space-y-5">
           <section><h4 className="font-semibold" style={{ color: accent }}>Omfattning och upplägg</h4><button type="button" onClick={() => onEdit("scope")} className={`mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.scope ? "proposal-placeholder" : ""}`}>{draft.scope || "Beskriv erbjudandet. Klicka för att redigera."}</button></section>
           <section><h4 className="font-semibold" style={{ color: accent }}>Priser och villkor</h4><button type="button" onClick={() => onEdit("pricing_notes")} className={`mt-2 w-full whitespace-pre-wrap break-words text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 ${!draft.pricing_notes ? "proposal-placeholder" : ""}`}>{draft.pricing_notes || "Ange priser och villkor. Klicka för att redigera."}</button></section>
         </div>

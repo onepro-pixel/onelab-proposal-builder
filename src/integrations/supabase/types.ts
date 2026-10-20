@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      organizations: {
+        Row: { id: string; name: string; created_by: string; created_at: string }
+        Insert: { id?: string; name: string; created_by: string; created_at?: string }
+        Update: { id?: string; name?: string; created_by?: string; created_at?: string }
+        Relationships: []
+      }
+      organization_members: {
+        Row: { organization_id: string; user_id: string; role: string; created_at: string }
+        Insert: { organization_id: string; user_id: string; role: string; created_at?: string }
+        Update: { organization_id?: string; user_id?: string; role?: string; created_at?: string }
+        Relationships: []
+      }
+      brand_profiles: {
+        Row: { organization_id: string; company_name: string; primary_color: string; accent_color: string; background_color: string; text_color: string; logo_path: string | null; cover_image_path: string | null; heading_font_path: string | null; body_font_path: string | null; updated_at: string }
+        Insert: { organization_id: string; company_name?: string; primary_color?: string; accent_color?: string; background_color?: string; text_color?: string; logo_path?: string | null; cover_image_path?: string | null; heading_font_path?: string | null; body_font_path?: string | null; updated_at?: string }
+        Update: { organization_id?: string; company_name?: string; primary_color?: string; accent_color?: string; background_color?: string; text_color?: string; logo_path?: string | null; cover_image_path?: string | null; heading_font_path?: string | null; body_font_path?: string | null; updated_at?: string }
+        Relationships: []
+      }
+      brand_assets: {
+        Row: { id: string; organization_id: string; storage_path: string; asset_type: string; label: string; created_at: string }
+        Insert: { id?: string; organization_id: string; storage_path: string; asset_type: string; label?: string; created_at?: string }
+        Update: { id?: string; organization_id?: string; storage_path?: string; asset_type?: string; label?: string; created_at?: string }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           id: number

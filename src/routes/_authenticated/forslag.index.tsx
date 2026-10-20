@@ -50,7 +50,7 @@ function List() {
         {data?.length === 0 && (
           <div className="py-20 text-center">
             <p className="display text-3xl">Inga förslag än</p>
-            <p className="mt-2 text-muted-foreground">Klistra in dina anteckningar från Sales Kong så skriver AI:n ett första utkast.</p>
+            <p className="mt-2 text-muted-foreground">Klistra in mötesanteckningar så skriver AI:n ett första utkast.</p>
           </div>
         )}
         {data?.map((p) => (

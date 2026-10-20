@@ -13,9 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/_authenticated/forslag/ny")({
   head: () => ({
     meta: [
-      { title: "Ny offert – OneLab" },
+      { title: "Ny offert" },
       { name: "description", content: "Skapa ett nytt kundförslag från mötesanteckningar." },
-      { property: "og:title", content: "Ny offert – OneLab" },
+      { property: "og:title", content: "Ny offert" },
       { property: "og:description", content: "Skapa ett nytt kundförslag från mötesanteckningar." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -65,7 +65,7 @@ function NewProposal() {
       <p className="eyebrow mb-3">Ny offert</p>
       <h1 className="display text-5xl">Från anteckningar till förslag</h1>
       <p className="mt-4 max-w-xl text-muted-foreground">
-        Klistra in anteckningarna från Sales Kong. AI:n skriver ett skräddarsytt förslag utifrån OneLabs tjänster – du kan redigera allt efteråt.
+        Klistra in dina mötesanteckningar. AI:n skapar ett kundanpassat förslag utifrån tjänsterna och priserna i inställningarna.
       </p>
 
       <form onSubmit={submit} className="mt-12 space-y-8">
@@ -86,7 +86,7 @@ function NewProposal() {
             required
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Klistra in anteckningarna från Sales Kong här…"
+            placeholder="Klistra in mötesanteckningarna här…"
             className="min-h-[360px] bg-paper p-5 text-base leading-relaxed"
           />
         </div>

@@ -6,17 +6,17 @@ import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import coverA from "@/assets/brand/cover.jpg.asset.json";
-import { Wordmark } from "@/components/Wordmark";
-const cover = coverA.url;
+
+
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Logga in – OneLab Förslag" },
-      { name: "description", content: "Inloggning för OneLabs medarbetare." },
-      { property: "og:title", content: "Logga in – OneLab Förslag" },
-      { property: "og:description", content: "Inloggning för OneLabs medarbetare." },
+      { title: "Logga in – Proposo" },
+      { name: "description", content: "Inloggning för användare." },
+      { property: "og:title", content: "Logga in – Proposo" },
+      { property: "og:description", content: "Inloggning för användare." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const isOneLab = (e: string) => e.trim().toLowerCase().endsWith("@onelab.se");
+const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -37,19 +37,12 @@ function AuthPage() {
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
-      if (!isOneLab(data.user.email ?? "")) {
-        await supabase.auth.signOut();
-        toast.error("Endast @onelab.se-konton har åtkomst.");
-        return;
-      }
+      
       navigate({ to: "/forslag", replace: true });
     });
     const { data } = supabase.auth.onAuthStateChange((ev, session) => {
       if (ev === "SIGNED_IN" && session) {
-        if (!isOneLab(session.user.email ?? "")) {
-          supabase.auth.signOut();
-          toast.error("Endast @onelab.se-konton har åtkomst.");
-        } else navigate({ to: "/forslag", replace: true });
+        navigate({ to: "/forslag", replace: true });
       }
     });
     return () => data.subscription.unsubscribe();
@@ -57,8 +50,8 @@ function AuthPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isOneLab(email)) {
-      toast.error("Använd din @onelab.se-adress.");
+    if (!isValidEmail(email)) {
+      toast.error("Ange en giltig e-postadress.");
       return;
     }
     setBusy(true);
@@ -80,7 +73,7 @@ function AuthPage() {
   async function google() {
     const r = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin + "/auth",
-      extraParams: { hd: "onelab.se", prompt: "select_account" },
+      extraParams: { prompt: "select_account" },
     });
     if (r.error) toast.error("Kunde inte logga in med Google.");
   }
@@ -88,11 +81,11 @@ function AuthPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col justify-between p-10 lg:p-16">
-        <Wordmark className="h-7" />
+        <span className="text-3xl font-bold tracking-tight">proposo.</span>
         <div className="mx-auto w-full max-w-sm">
           <p className="eyebrow mb-4">Förslagsverktyget</p>
           <h1 className="display text-5xl">{mode === "in" ? "Välkommen tillbaka" : "Skapa konto"}</h1>
-          <p className="mt-4 text-muted-foreground">För OneLabs medarbetare. Logga in med din @onelab.se-adress.</p>
+          <p className="mt-4 text-muted-foreground">Logga in med din e-postadress eller testa demon utan konto.</p>
           {sent ? (
             <div className="mt-10 rounded-2xl bg-sand p-6">
               Kolla din inkorg och bekräfta e-postadressen för att komma igång.
@@ -110,7 +103,7 @@ function AuthPage() {
               <form onSubmit={submit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">E-post</Label>
-                  <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="fornamn.efternamn@onelab.se" className="h-12" />
+                  <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="namn@foretag.se" className="h-12" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pw">Lösenord</Label>
@@ -126,9 +119,9 @@ function AuthPage() {
             </>
           )}
         </div>
-        <span className="text-xs text-muted-foreground">Internt verktyg · OneLab</span>
+        <span className="text-xs text-muted-foreground">Proposo · Kundförslag på ditt sätt</span>
       </div>
-      <img src={cover} alt="" width={1920} height={1280} className="hidden h-screen w-full object-cover object-[65%_center] lg:block" />
+      <div className="hidden bg-slate-900 p-16 text-white lg:flex lg:items-center"><div><p className="mb-5 text-sm uppercase tracking-widest text-slate-400">Proposo</p><h2 className="text-5xl font-semibold leading-tight">Från möte till förslag.</h2><p className="mt-6 text-lg text-slate-300">Skapa kundanpassade offerter med ditt eget varumärke.</p><a href="/demo" className="mt-8 inline-block rounded-full bg-white px-6 py-3 font-medium text-slate-900">Testa demon</a></div></div>
     </div>
   );
 }

@@ -17,11 +17,13 @@ type Offer = {
 };
 type ProposalTheme = "midnight" | "ocean" | "forest";
 type ContentBlock = { id: string; heading: string; body: string };
+type PriceItem = { id: string; description: string; quantity: number; unit: string; unit_price: number };
 type Draft = {
   theme: ProposalTheme;
   sender_name: string;
   logo_url: string;
   blocks: ContentBlock[];
+  price_items: PriceItem[];
   title: string;
   customer_name: string;
   introduction: string;
@@ -37,6 +39,7 @@ const toDraft = (offer: Offer): Draft => ({
   introduction: offer.content?.introduction ?? "",
   scope: offer.content?.scope ?? "",
   pricing_notes: offer.content?.pricing_notes ?? "",
+  price_items: Array.isArray(offer.content?.price_items) ? (offer.content.price_items as PriceItem[]).filter((p) => p && typeof p.id === "string" && typeof p.description === "string" && Number.isFinite(p.quantity) && p.quantity >= 0 && Number.isFinite(p.unit_price) && p.unit_price >= 0) : [],
   blocks: Array.isArray(offer.content?.blocks) ? (offer.content.blocks as ContentBlock[]).filter((b) => b && typeof b.id === "string" && typeof b.heading === "string" && typeof b.body === "string") : [],
 });
 
@@ -115,6 +118,7 @@ function OfferEditor() {
           scope: payload.scope,
           pricing_notes: payload.pricing_notes,
           blocks: payload.blocks,
+          price_items: payload.price_items,
           theme: payload.theme,
           sender_name: payload.sender_name,
           logo_url: payload.logo_url,

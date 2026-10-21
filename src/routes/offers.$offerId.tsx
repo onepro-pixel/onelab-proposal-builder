@@ -249,6 +249,10 @@ function OfferEditor() {
     setDraft((current) => current ? { ...current, blocks: current.blocks.filter((block) => block.id !== id) } : current);
   }
 
+  function updatePriceItem(id: string, field: "description" | "quantity" | "unit" | "unit_price", value: string) {
+    setDraft((current) => current ? { ...current, price_items: current.price_items.map((item) => item.id === id ? { ...item, [field]: field === "quantity" || field === "unit_price" ? Math.max(0, Number(value) || 0) : value } : item) } : current);
+  }
+
   function change(field: "title" | "customer_name" | "introduction" | "scope" | "pricing_notes" | "sender_name" | "logo_url", value: string) {
     setDraft((current) => current ? { ...current, [field]: value } : current);
   }
@@ -336,6 +340,8 @@ function OfferEditor() {
   </main>;
 }
 
+
+const formatSek = (value: number) => `${value.toLocaleString("sv-SE", { maximumFractionDigits: 2 })} kr`;
 
 function ProposalPreview({ draft, onEdit }: { draft: Draft; onEdit: (field: "introduction" | "scope" | "pricing_notes") => void }) {
   const accent = draft.theme === "ocean" ? "#0d6b86" : draft.theme === "forest" ? "#24634d" : "#17243d";

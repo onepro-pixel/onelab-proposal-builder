@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,11 +37,11 @@ function AuthPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       
-      navigate({ to: "/forslag", replace: true });
+      navigate({ to: "/workspace", replace: true });
     });
     const { data } = supabase.auth.onAuthStateChange((ev, session) => {
       if (ev === "SIGNED_IN" && session) {
-        navigate({ to: "/forslag", replace: true });
+        navigate({ to: "/workspace", replace: true });
       }
     });
     return () => data.subscription.unsubscribe();
@@ -62,7 +61,7 @@ function AuthPage() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: window.location.origin + "/auth" },
       });
       if (error) toast.error(error.message);
       else setSent(true);
@@ -71,9 +70,9 @@ function AuthPage() {
   }
 
   async function google() {
-    const r = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/auth",
-      extraParams: { prompt: "select_account" },
+    const r = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin + "/auth", queryParams: { prompt: "select_account" } },
     });
     if (r.error) toast.error("Kunde inte logga in med Google.");
   }

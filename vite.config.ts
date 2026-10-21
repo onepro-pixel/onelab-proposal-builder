@@ -7,6 +7,8 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Only NEXT_PUBLIC_* variables are safe to expose to the browser.
+  vite: { envPrefix: ["VITE_", "NEXT_PUBLIC_"] },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

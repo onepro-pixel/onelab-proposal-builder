@@ -324,6 +324,17 @@ function OfferEditor() {
         <label key={key} className="block space-y-2"><span className="text-sm font-medium">{label}</span>
           <textarea id={`offer-field-${key}`} disabled={!editable} rows={6} value={draft[key]} onChange={(e) => change(key, e.target.value)}
             className="w-full resize-y rounded-md border bg-background p-3 disabled:opacity-70" /><span className="block text-right text-xs text-muted-foreground">{draft[key].trim() ? draft[key].trim().split(/\s+/).length : 0} ord</span></label>)}
+      <section className="space-y-3 rounded-lg border p-4">
+        <div className="flex items-center justify-between gap-3"><div><h2 className="font-semibold">Prisuppställning</h2><p className="text-xs text-muted-foreground">Belopp exklusive moms. Lägg till en rad per tjänst eller produkt.</p></div><button type="button" disabled={!editable} onClick={() => setDraft((current) => current ? { ...current, price_items: [...current.price_items, { id: crypto.randomUUID(), description: "", quantity: 1, unit: "st", unit_price: 0 }] } : current)} className="rounded border px-3 py-2 text-sm">+ Prisrad</button></div>
+        {draft.price_items.map((item) => <div key={item.id} className="grid grid-cols-2 gap-2 rounded-md border p-3">
+          <label className="col-span-2 text-xs">Tjänst eller produkt<input disabled={!editable} value={item.description} onChange={(e) => updatePriceItem(item.id, "description", e.target.value)} className="mt-1 w-full rounded border bg-background p-2 text-sm" /></label>
+          <label className="text-xs">Antal<input disabled={!editable} type="number" min="0" step="any" value={item.quantity} onChange={(e) => updatePriceItem(item.id, "quantity", e.target.value)} className="mt-1 w-full rounded border bg-background p-2 text-sm" /></label>
+          <label className="text-xs">Enhet<input disabled={!editable} value={item.unit} onChange={(e) => updatePriceItem(item.id, "unit", e.target.value)} className="mt-1 w-full rounded border bg-background p-2 text-sm" /></label>
+          <label className="text-xs">Pris per enhet (kr)<input disabled={!editable} type="number" min="0" step="any" value={item.unit_price} onChange={(e) => updatePriceItem(item.id, "unit_price", e.target.value)} className="mt-1 w-full rounded border bg-background p-2 text-sm" /></label>
+          <div className="flex items-end justify-end gap-3"><span className="text-sm font-medium">{formatSek(item.quantity * item.unit_price)}</span><button type="button" disabled={!editable} onClick={() => setDraft((current) => current ? { ...current, price_items: current.price_items.filter((p) => p.id !== item.id) } : current)} className="rounded border px-2 py-1 text-xs">Ta bort</button></div>
+        </div>)}
+        <p className="text-right font-semibold">Totalt exkl. moms: {formatSek(draft.price_items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0))}</p>
+      </section>
       <div className="space-y-4 border-t pt-5">
         <div className="flex items-center justify-between gap-3"><div><h2 className="font-semibold">Egna innehållsblock</h2><p className="text-xs text-muted-foreground">Lägg till och ordna avsnitt i offerten.</p></div><button type="button" disabled={!editable} onClick={addBlock} className="rounded-md border px-3 py-2 text-sm disabled:opacity-50">+ Lägg till block</button></div>
         {draft.blocks.map((block, index) => <section key={block.id} className="space-y-3 rounded-lg border p-4">

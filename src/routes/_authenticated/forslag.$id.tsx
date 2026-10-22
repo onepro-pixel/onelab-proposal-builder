@@ -1,13 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Check, Copy, Download, Link2, Loader2, RefreshCw, Sparkles, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { generateProposal } from "@/lib/proposals.functions";
 import type { ProposalContent } from "@/lib/proposal-types";
 import { ProposalDocument } from "@/components/ProposalDocument";
+import { OfferChecks } from "@/components/OfferChecks";
+import { checkOffer } from "@/lib/offer-checks";
+import { offerFileTitle, printDocument } from "@/lib/print";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +42,8 @@ function Editor() {
       if (error) throw error;
       return data;
     },
+    // Background refetches must never replace what the user is typing.
+    refetchOnWindowFocus: false,
   });
   const [content, setContent] = useState<ProposalContent | null>(null);
   const [saving, setSaving] = useState<"idle" | "saving" | "saved">("idle");
@@ -49,23 +54,39 @@ function Editor() {
   const [assistantCollapsed, setAssistantCollapsed] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const pendingSave = useRef<Promise<void>>(Promise.resolve());
+  // True while the editor holds edits that are not yet stored; a refetch must not overwrite them.
+  const dirty = useRef(false);
+  const editVersion = useRef(0);
+  const notesLoaded = useRef(false);
 
   useEffect(() => {
-    if (p) {
-      setContent((p.content as unknown as ProposalContent) ?? null);
+    if (!p) return;
+    if (!dirty.current) setContent((p.content as unknown as ProposalContent) ?? null);
+    // Notes are only taken from the server once; later refetches (for example after toggling sharing) must not reset unsaved notes.
+    if (!notesLoaded.current) {
       setNotes(p.notes);
+      notesLoaded.current = true;
     }
   }, [p]);
+
+  const warnings = useMemo(
+    () => (content?.offer ? checkOffer(content.offer, p?.customer_name ?? "", notes) : []),
+    [content, notes, p?.customer_name],
+  );
 
   function onChange(next: ProposalContent) {
     if (regen) return;
     setContent(next);
     setSaving("saving");
+    dirty.current = true;
+    const version = ++editVersion.current;
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       pendingSave.current = pendingSave.current.then(async () => {
         const { error } = await supabase.from("proposals").update({ content: next as never }).eq("id", id);
         if (error) toast.error("Kunde inte spara");
+        // Only clear the flag if nothing was typed while this save was running.
+        if (!error && editVersion.current === version) dirty.current = false;
         setSaving(error ? "idle" : "saved");
       });
     }, 700);
@@ -79,6 +100,7 @@ function Editor() {
       await pendingSave.current;
       const { error } = await supabase.from("proposals").update({ notes, ...(content ? { content: content as never } : {}) }).eq("id", id);
       if (error) throw new Error("Kunde inte spara dina ändringar. Försök igen.");
+      dirty.current = false;
       const c = await generate({ data: { id, ...(adjustment ? { instruction: adjustment } : {}) } });
       setContent(c);
       await qc.invalidateQueries({ queryKey: ["proposal", id] });
@@ -140,7 +162,7 @@ function Editor() {
                 {p.is_shared && <ShareLink url={shareUrl} />}
               </PopoverContent>
             </Popover>
-            <Button size="sm" className="rounded-full" disabled={!content} onClick={() => window.print()}>
+            <Button size="sm" className="rounded-full" disabled={!content} onClick={() => printDocument(offerFileTitle(p.customer_name))}>
               <Download className="mr-1.5 h-4 w-4" /> PDF
             </Button>
             <Button variant="ghost" size="icon" onClick={del} aria-label="Ta bort">
@@ -190,7 +212,14 @@ function Editor() {
 
       <div className={`px-6 py-10 print:p-0 ${content ? "pb-80 xl:pr-[370px] xl:pb-10" : ""}`} inert={regen}>
         {content ? (
-          <ProposalDocument content={content} customerName={p.customer_name} editable onChange={onChange} />
+          <>
+            {content.offer && (
+              <div className="no-print mx-auto mb-6 max-w-[1280px]">
+                <OfferChecks warnings={warnings} />
+              </div>
+            )}
+            <ProposalDocument content={content} customerName={p.customer_name} contactPerson={p.contact_person} editable onChange={onChange} />
+          </>
         ) : (
           <div className="mx-auto max-w-xl py-20 text-center">
             <p className="display text-3xl">Inget förslag skrivet än</p>

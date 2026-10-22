@@ -4,6 +4,7 @@ import { getSharedProposal } from "@/lib/proposals.functions";
 import { ProposalDocument } from "@/components/ProposalDocument";
 import { Wordmark } from "@/components/Wordmark";
 import { Button } from "@/components/ui/button";
+import { offerFileTitle, printDocument } from "@/lib/print";
 
 export const Route = createFileRoute("/dela/$token")({
   loader: async ({ params }) => {
@@ -53,12 +54,12 @@ function Shared() {
     <div className="min-h-screen">
       <header className="no-print mx-auto flex max-w-[900px] items-center justify-between px-6 py-6">
         <Wordmark className="h-5" />
-        <Button size="sm" variant="outline" className="rounded-full" onClick={() => window.print()}>
+        <Button size="sm" variant="outline" className="rounded-full" onClick={() => printDocument(offerFileTitle(p.customer_name))}>
           <Download className="mr-1.5 h-4 w-4" /> Ladda ner PDF
         </Button>
       </header>
       <div className="px-6 pb-16 print:p-0">
-        <ProposalDocument content={p.content} customerName={p.customer_name} />
+        <ProposalDocument content={p.content} customerName={p.customer_name} contactPerson={p.contact_person} />
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ type Path = (string | number)[];
 type Props = {
   content: ProposalContent;
   customerName: string;
+  contactPerson?: string | undefined;
   editable?: boolean;
   onChange?: (next: ProposalContent) => void;
 };
@@ -32,8 +33,8 @@ function removeIn<T>(obj: T, path: Path, index: number): T {
   return setIn(obj, path, (arr as unknown[]).filter((_, i) => i !== index));
 }
 
-export function ProposalDocument({ content, customerName, editable = false, onChange }: Props) {
-  if (content.offer) return <OfferDocument content={content} customerName={customerName} editable={editable} onChange={onChange} />;
+export function ProposalDocument({ content, customerName, contactPerson, editable = false, onChange }: Props) {
+  if (content.offer) return <OfferDocument content={content} customerName={customerName} contactPerson={contactPerson} editable={editable} onChange={onChange} />;
   const c = content;
   const update = (path: Path, v: string) => onChange?.(setIn(c, path, v));
   const remove = (path: Path, i: number) => onChange?.(removeIn(c, path, i));

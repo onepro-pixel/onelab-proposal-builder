@@ -1,3 +1,4 @@
+import { PACKAGE_NAMES, STANDARD_PACKAGE_PRICES, extraPriceText, formatKr, packagePriceText, pricePrecedenceRule } from "./pricing-catalog";
 export type OfferItem = { name: string; text: string };
 export type OfferPackage = { name: string; price: string; billing: string; caption: string; features: string[] };
 export type OfferExtra = { name: string; price: string; billing: string; description: string; condition: string };
@@ -17,7 +18,7 @@ export function defaultOffer(customer: string): OfferContent {
     title: `Hälsoundersökning för ${customer}`,
     subtitle: `En hälsoundersökning på plats hos er som ger varje medarbetare koll på sin hälsa, och ${customer} ett konkret beslutsunderlag för det fortsatta arbetet med hälsa, välmående och arbetsmiljö.`,
     badge: "Offert · Hälsoundersökning Bas", selectedPackage: "Hälsoundersökning Bas",
-    metrics: [{ value: "2 690 kr", label: "Bas, per medarbetare" }, { value: "3 190 kr", label: "Plus, per medarbetare" }, { value: "10–15 min", label: "per medarbetare på plats" }],
+    metrics: [{ value: formatKr(STANDARD_PACKAGE_PRICES[PACKAGE_NAMES.bas] ?? 0), label: "Bas, per medarbetare" }, { value: formatKr(STANDARD_PACKAGE_PRICES[PACKAGE_NAMES.plus] ?? 0), label: "Plus, per medarbetare" }, { value: "10–15 min", label: "per medarbetare på plats" }],
     steps: [
       { name: "Digital hälsoundersökning", text: "Dynamiska frågebatterier om hälsa, livsstil och arbete i app eller webb." },
       { name: "Mätningar och prover", text: "Blodtryck, puls, syremättnad och blodprov. Plus för den som vill." },
@@ -27,9 +28,9 @@ export function defaultOffer(customer: string): OfferContent {
     packageHeading: "En gemensam grund, med möjlighet till fördjupning",
     packageIntro: "Välj den undersökningsnivå som passar er. Bas inkluderar Digital, och Plus inkluderar allt i Bas.",
     packages: [
-      { name: "Hälsoundersökning Digital", price: "1 290 kr", billing: "per medarbetare", caption: "DIGITAL KARTLÄGGNING", features: ["Hälsa, livsstil och arbetsmiljö", "Digital screening i app eller webb", "Personligt resultat och uppföljning", "Rapport och analys till er"] },
-      { name: "Hälsoundersökning Bas", price: "2 690 kr", billing: "per medarbetare", caption: "EN GEMENSAM GRUND", features: ["Hela Digital ingår", "Blodtryck, puls och syremättnad", "Blodfetter, HbA1c och hsCRP", "Personligt resultat och uppföljning", "Rapport och analys till er"] },
-      { name: "Hälsoundersökning Plus", price: "3 190 kr", billing: "per medarbetare", caption: "FÖRDJUPAD UNDERSÖKNING", features: ["Allt som ingår i Bas", "TSH, hemoglobin och kreatinin", "ALAT och transferrin", "Auskultation", "Vid samma undersökningstillfälle"] },
+      { name: PACKAGE_NAMES.digital, price: formatKr(STANDARD_PACKAGE_PRICES[PACKAGE_NAMES.digital] ?? 0), billing: "per medarbetare", caption: "DIGITAL KARTLÄGGNING", features: ["Hälsa, livsstil och arbetsmiljö", "Digital screening i app eller webb", "Personligt resultat och uppföljning", "Rapport och analys till er"] },
+      { name: PACKAGE_NAMES.bas, price: formatKr(STANDARD_PACKAGE_PRICES[PACKAGE_NAMES.bas] ?? 0), billing: "per medarbetare", caption: "EN GEMENSAM GRUND", features: ["Hela Digital ingår", "Blodtryck, puls och syremättnad", "Blodfetter, HbA1c och hsCRP", "Personligt resultat och uppföljning", "Rapport och analys till er"] },
+      { name: PACKAGE_NAMES.plus, price: formatKr(STANDARD_PACKAGE_PRICES[PACKAGE_NAMES.plus] ?? 0), billing: "per medarbetare", caption: "FÖRDJUPAD UNDERSÖKNING", features: ["Allt som ingår i Bas", "TSH, hemoglobin och kreatinin", "ALAT och transferrin", "Auskultation", "Vid samma undersökningstillfälle"] },
     ],
     reasons: [
       { name: "Något för alla ger högt deltagande", text: "En gemensam grund gör det enkelt att delta och ger ett bredare underlag för er rapport." },
@@ -128,8 +129,8 @@ export function applyAdaptation(customer: string, a: OfferAdaptation): OfferCont
 export const adaptationRules = `
 Du ska INTE skriva en ny offert. Grundmallen är fast och färdigskriven. Du returnerar bara de fält som ska anpassas efter mötesanteckningarna; allt annat i mallen lämnas orört.
 Anpassa: title och subtitle (nämn kundens namn naturligt), badge (t.ex. "Offert · Hälsoundersökning Bas"), packageIntro, followupIntro, practicalIntro och pricingNote (korta, konkreta, anpassade efter kundens bransch och behov), selectedPackage (huvudupplägget, Bas om inget annat framgår), packagePrices (endast priser som avviker från standardpriserna, matcha paketnamnen exakt) och extras (relevanta tillval, tom lista när inga tillval är relevanta).
-Standardpriser: Digital 1 290 kr/person; Bas 2 690 kr/person; Plus 3 190 kr/person. Kundspecifika priser som uttryckligen finns i anteckningarna har företräde inom den offerten. Ange bara priser i packagePrices som ska ändras.
-Tillvalspriser: PSA-test (via remiss) 490 kr/person; Hörseltest 990 kr/person; Spirometri 990 kr/person; Screening för vibration 490 kr/person; Vibrationstester 1 490 kr/person (MINST 10 personer per tillfälle, skriv alltid detta i condition); Sjuk- och friskanmälan verktyg 490 kr/år/person. Screening för vibration och Vibrationstester är olika tjänster.
+Standardpriser: ${packagePriceText} Kundspecifika priser som uttryckligen finns i anteckningarna har företräde inom den offerten. ${pricePrecedenceRule} Ange bara priser i packagePrices som ska ändras.
+Tillvalspriser: ${extraPriceText}. Screening för vibration och Vibrationstester är olika tjänster.
 Prisfält bara belopp och kr (t.ex. "2 490 kr"), aldrig "från" eller "/person"; enheten/perioden/betalaren hör till billing. Inget standardpris är per år om inte anteckningarna anger årsavtal; undantag sjuk- och friskanmälan som är per år/person.
 Medicinska kontroller bara vid relevant exponering; nattarbete separat tillval med "Pris enligt offert" om pris saknas. Lägg inte till andra tjänster utan stöd i källunderlaget. Varje extras-description högst 55 ord. Hitta inte på garantier, kundresultat eller medicinska påståenden.
 `;
@@ -137,8 +138,8 @@ Medicinska kontroller bara vid relevant exponering; nattarbete separat tillval m
 export const offerRules = `
 Använd grundmallen som FAST textunderlag. Kopiera dess formuleringar i huvudsak, inte en helt nyskriven offert. Anpassa kundnamn, introduktion, erbjudande, betalare, priser och relevanta tillval efter mötesanteckningarna.
 Vanligtvis fyra sidor: introduktion, undersökningsupplägg, rapport/uppföljning och praktiskt/pris. Extra tjänster läggs i extras, som ger extra sidor. Extras ska vara tom när inga tillval är relevanta.
-Standardpriser: Digital 1 290 kr/person; Bas 2 690 kr/person; Plus 3 190 kr/person. Kundspecifika priser som uttryckligen finns i anteckningarna har företräde inom den offerten. Uppdatera alla upprepade prisuppgifter konsekvent: metrics, packages och extras.
-Tillvalspriser: PSA-test (via remiss) 490 kr/person; Hörseltest 990 kr/person; Spirometri 990 kr/person; Screening för vibration 490 kr/person; Vibrationstester 1 490 kr/person (MINST 10 personer per tillfälle, skriv alltid detta i condition); Sjuk- och friskanmälan verktyg 490 kr/år/person. Screening för vibration och Vibrationstester är olika tjänster.
+Standardpriser: ${packagePriceText} Kundspecifika priser som uttryckligen finns i anteckningarna har företräde inom den offerten. ${pricePrecedenceRule} Uppdatera alla upprepade prisuppgifter konsekvent: metrics, packages och extras.
+Tillvalspriser: ${extraPriceText}. Screening för vibration och Vibrationstester är olika tjänster.
 Behåll Digital/Bas/Plus-alternativen om kunden inte uttryckligen önskar enbart vissa nivåer. selectedPackage är huvudupplägget (Bas om inget annat framgår). Om Plus är en egenbetald uppgradering: beskriv detta endast när anteckningarna anger det. Använd uttrycklig uppgraderingskostnad om angiven, annars skillnaden mellan avtalade Bas- och Plus-priser. Hitta aldrig på att företaget betalar Bas för alla eller att Plus är egenbetalt utan stöd.
 Inget standardpris är per år om inte anteckningarna anger årsavtal; undantag sjuk- och friskanmälan som är per år/person. Prisfält bara belopp och kr; enheten/perioden/betalaren hör till billing.
 Behåll 4 steps, högst 3 packages, 3 reasons, 3 arrangement, 5 followups, 6 employer och 6 practical. Korta fält så att sidlayouten passar (vanligen högst 35 ord per text, 8 ord per rubrik; titel högst 12 ord). extras kan innehålla många tjänster; varje description högst 55 ord. Medicinska kontroller bara vid relevant exponering; nattarbete separat tillval med Pris enligt offert om pris saknas. Lägg inte till andra tjänster utan stöd i källunderlaget. Följ lagkrav och skriv inte att en screening automatiskt ersätter lagstadgad medicinsk kontroll.

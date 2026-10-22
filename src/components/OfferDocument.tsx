@@ -6,7 +6,7 @@ import { Wordmark } from "./Wordmark";
 import { ExaminationContents } from "./ExaminationContents";
 import cover from "@/assets/brand/cover.jpg.asset.json";
 
-type Props = { content: ProposalContent; customerName: string; editable?: boolean; onChange?: ((next: ProposalContent) => void) | undefined };
+type Props = { content: ProposalContent; customerName: string; contactPerson?: string | undefined; editable?: boolean; onChange?: ((next: ProposalContent) => void) | undefined };
 type Path = (string | number)[];
 
 function Field({ value, editable, onCommit, className = "" }: { value: string; editable: boolean; onCommit: (v: string) => void; className?: string | undefined }) {
@@ -16,7 +16,7 @@ function Field({ value, editable, onCommit, className = "" }: { value: string; e
   }}>{value}</span>;
 }
 
-export function OfferDocument({ content, customerName, editable = false, onChange }: Props) {
+export function OfferDocument({ content, customerName, contactPerson, editable = false, onChange }: Props) {
   const offer = content.offer;
   if (!offer) return null;
   function update(path: Path, value: string) {
@@ -54,7 +54,7 @@ export function OfferDocument({ content, customerName, editable = false, onChang
         <div className="offer-cover-copy"><p className="offer-badge">{text(["badge"])}</p><h1>{text(["title"])}</h1><p>{text(["subtitle"])}</p></div>
         <div className="offer-metrics">{offer.metrics.map((_, i) => <div key={i}><strong>{text(["metrics", i, "value"])}</strong><p>{text(["metrics", i, "label"])}</p></div>)}</div>
       </div>
-      <div className="offer-cover-right"><p className="offer-customer">{customerName}</p><img className="offer-cover-image" src={cover.url} alt="OneLabs sjuksköterska mäter en medarbetares blodtryck" />
+      <div className="offer-cover-right"><p className="offer-customer">{customerName}{contactPerson?.trim() ? ` · ${contactPerson.trim()}` : ""}</p><img className="offer-cover-image" src={cover.url} alt="OneLabs sjuksköterska mäter en medarbetares blodtryck" />
         <div className="offer-stages">{offer.steps.map((_, i) => {
           const Icon = stageIcons[i % stageIcons.length] ?? ClipboardList;
           return <div key={i} className={`offer-stage ${i === 3 ? "offer-stage-dark" : ""}`}><div className="offer-stage-top"><span>{["01 FÖRE", "02 PÅ PLATS", "03 RESULTAT", "04 EFTERÅT"][i]}</span><Icon aria-hidden="true" /></div><h3>{text(["steps", i, "name"])}</h3><p>{text(["steps", i, "text"])}</p></div>;
